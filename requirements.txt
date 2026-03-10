@@ -1,0 +1,6 @@
+langgraph>=0.2.0
+langgraph-checkpoint-sqlite>=0.1.0
+anthropic>=0.40.0
+python-dotenv>=1.0.0
+yfinance>=0.2.30
+rich>=13.0.0
