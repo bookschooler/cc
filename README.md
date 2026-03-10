@@ -1,2 +1,2 @@
 # Claude Code 랑 놀기
-Personal Projects
+클로드 코드와 놀면서 AI를 능숙하게 사용할 수 있는 사람 되기 프로젝트
