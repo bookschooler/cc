@@ -4,15 +4,17 @@
   1. 마크다운 최종 보고서 생성
   2. PPT 슬라이드 생성 (python-pptx)
   3. Blameless Post-mortem (에이전트 개선 제안서) 작성
-  4. Sophie 친화적 설명 생성
+  4. Knowledge Base 프로젝트 인사이트 저장
+  5. Self-review (자기 검토)
+  6. Sophie 친화적 설명 생성
 
-방법론: Blameless Post-mortems (누구의 잘못이 아닌 시스템 개선에 집중)
+방법론: Blameless Post-mortems (시스템 개선에 집중)
 """
 
 import os
 from datetime import datetime
 from graph.state import AgentState
-from agents.base import call_claude
+from agents.base import call_claude, self_review
 from tools.chart_tools import chart_paths_for_ppt
 
 AGENT_NAME = "Reporter"
@@ -21,11 +23,11 @@ SYSTEM = """You are a Data Storyteller with 10 years of experience as Google's C
 
 [CORE RESPONSIBILITY]
 You translate complex data analysis into business language that executives can act on immediately.
-You also conduct a Blameless Post-mortem — analyzing what slowed the team down, not to blame anyone, but to improve the system for the next project.
+You also conduct a Blameless Post-mortem — analyzing what slowed the team down to improve the system.
 
 [YOUR PROCESS]
 1. Write the Markdown report focused on Key Metrics and actionable insights
-2. Outline PPT slide structure (the code will generate the actual file)
+2. Outline PPT slide structure
 3. Write the Blameless Post-mortem
 4. Write Sophie explanation
 
@@ -61,7 +63,7 @@ You also conduct a Blameless Post-mortem — analyzing what slowed the team down
 - [개선 규칙 1]
 - [개선 규칙 2]
 
-※ 이 분석은 특정 에이전트의 잘못이 아닌, 우리 팀 시스템을 더 좋게 만들기 위한 것입니다.
+※ 이 분석은 누구의 잘못이 아닌 팀 시스템 개선을 위한 것입니다.
 
 ---
 
@@ -76,7 +78,7 @@ You also conduct a Blameless Post-mortem — analyzing what slowed the team down
 """
 
 REVIEW_SYSTEM = """You are the Data Storyteller (Reporter) on a Google-caliber data science team.
-You are reviewing a teammate's work. Evaluate from the perspective of: clarity, business impact, and actionability.
+Evaluate from the perspective of: clarity, business impact, and actionability.
 Respond ONLY in this exact format:
 VOTE: PASS
 REASON: [1-2 sentences]
@@ -86,26 +88,31 @@ or
 VOTE: FAIL
 REASON: [1-2 sentences explaining what specifically needs to change]"""
 
+_SELF_CHECKLIST = [
+    "Executive Summary가 3줄 이내로 핵심 결론과 구체적 수치를 담고 있는가?",
+    "모든 숫자가 비즈니스 언어로 번역되어 있는가? (p-value 같은 통계 용어가 직접 노출되지 않는가?)",
+    "Recommendations가 '즉시 실행 가능한' 구체적 액션인가? (추상적 제안이 아닌가?)",
+    "Blameless Post-mortem에 에이전트별 반복 횟수와 구체적 개선 제안이 있는가?",
+    "Sophie 섹션이 전체 분석 여정을 이야기처럼 설명하는가?",
+]
+
 
 def reporter_agent(state: AgentState) -> dict:
-    """마크다운 보고서 + PPT 생성 + Post-mortem."""
-    topic = state.get("topic", "")
-    plan = state.get("plan", "")
+    """보고서 + PPT + Post-mortem (with self-review + KB update)."""
+    topic       = state.get("topic", "")
+    plan        = state.get("plan", "")
     methodology = state.get("methodology", "")
-    code = state.get("code", "")
-    results = state.get("analysis_results", "")
-    objective = state.get("objective", "")
+    results     = state.get("analysis_results", "")
+    objective   = state.get("objective", "")
     key_results = state.get("key_results", [])
 
-    # 반복 횟수 수집 (post-mortem용)
     iterations_info = {
-        "plan_version": state.get("plan_version", 1),
+        "plan_version":        state.get("plan_version", 1),
         "methodology_version": state.get("methodology_version", 1),
-        "analysis_iteration": state.get("analysis_iteration", 1),
-        "review_iteration": state.get("review_iteration", 1),
+        "analysis_iteration":  state.get("analysis_iteration", 1),
+        "review_iteration":    state.get("review_iteration", 1),
     }
 
-    # 피드백 수집
     feedback_parts = []
     sophie_fb = state.get("report_sophie_feedback")
     if sophie_fb:
@@ -123,9 +130,9 @@ Key Results: {', '.join(key_results)}
 {results[:1500] if results else "코드 실행 결과 없음"}
 
 [방법론 요약]
-{methodology[:600]}
+{methodology[:500]}
 
-[반복 현황]
+[반복 현황 — Post-mortem용]
 - 계획 수정: {iterations_info['plan_version']}회
 - 방법론 수정: {iterations_info['methodology_version']}회
 - 코드 반복: {iterations_info['analysis_iteration']}회
@@ -134,10 +141,22 @@ Key Results: {', '.join(key_results)}
     if feedback_parts:
         user_msg += "\n\n[피드백 — 반드시 반영]\n" + "\n\n".join(feedback_parts)
 
+    # ── 1차 생성 ──────────────────────────────────────────────────────────────
     raw = call_claude(SYSTEM, user_msg, max_tokens=2000)
 
-    # PPT 생성
+    # ── Self-Review ───────────────────────────────────────────────────────────
+    passed_sr, issues = self_review(raw, _SELF_CHECKLIST, AGENT_NAME)
+    if not passed_sr and issues:
+        print(f"  🔄 [Reporter Self-Review] 문제 발견, 수정 중...")
+        revision_msg = user_msg + "\n\n[자기 검토 결과 — 아래 문제를 반드시 수정]\n"
+        revision_msg += "\n".join(f"- {i}" for i in issues)
+        raw = call_claude(SYSTEM, revision_msg, max_tokens=2000)
+
+    # ── PPT 생성 ──────────────────────────────────────────────────────────────
     ppt_path = _generate_ppt(state, raw)
+
+    # ── Knowledge Base 업데이트 ───────────────────────────────────────────────
+    _update_knowledge_base(state, raw)
 
     return {
         "final_report_md": raw,
@@ -160,9 +179,34 @@ def reporter_review(content: str, context: str) -> dict:
     return _parse_vote(result, AGENT_NAME)
 
 
+# ── Knowledge Base 업데이트 ────────────────────────────────────────────────────
+def _update_knowledge_base(state: AgentState, report_md: str):
+    try:
+        from tools.knowledge_base import save_project_insight
+        methodology = state.get("methodology", "") or ""
+        method_name = ""
+        for line in methodology.splitlines():
+            s = line.strip()
+            if s.startswith("**선택 방법론:**"):
+                method_name = s.replace("**선택 방법론:**", "").strip()
+                break
+        findings = _extract_section(report_md, "Key Findings")
+        postmortem_summary = _extract_section(report_md, "병목 분석")
+        save_project_insight(
+            topic=state.get("topic", ""),
+            objective=state.get("objective", "") or "",
+            key_results=state.get("key_results", []),
+            methodology_used=method_name,
+            key_findings=findings,
+            postmortem_summary=postmortem_summary,
+        )
+        print(f"  📚 Knowledge Base에 프로젝트 인사이트 저장 완료")
+    except Exception as e:
+        print(f"  [KB 업데이트 오류] {e}")
+
+
 # ── PPT 생성 ──────────────────────────────────────────────────────────────────
 def _generate_ppt(state: AgentState, report_md: str) -> str:
-    """python-pptx로 PPT 파일 생성."""
     try:
         from pptx import Presentation
         from pptx.util import Inches, Pt
@@ -170,7 +214,7 @@ def _generate_ppt(state: AgentState, report_md: str) -> str:
         from pptx.enum.text import PP_ALIGN
 
         prs = Presentation()
-        prs.slide_width = Inches(13.33)
+        prs.slide_width  = Inches(13.33)
         prs.slide_height = Inches(7.5)
 
         DARK_BLUE = RGBColor(0x1A, 0x1A, 0x2E)
@@ -179,89 +223,84 @@ def _generate_ppt(state: AgentState, report_md: str) -> str:
         GOLD      = RGBColor(0xE9, 0xC4, 0x6A)
 
         def blank_slide():
-            layout = prs.slide_layouts[6]  # blank
-            return prs.slides.add_slide(layout)
+            return prs.slides.add_slide(prs.slide_layouts[6])
+
+        def fill_bg(slide, color):
+            fill = slide.background.fill
+            fill.solid()
+            fill.fore_color.rgb = color
 
         def add_text(slide, text, left, top, width, height,
                      font_size=18, bold=False, color=WHITE, align=PP_ALIGN.LEFT):
-            txBox = slide.shapes.add_textbox(
+            tb = slide.shapes.add_textbox(
                 Inches(left), Inches(top), Inches(width), Inches(height)
             )
-            tf = txBox.text_frame
+            tf = tb.text_frame
             tf.word_wrap = True
             p = tf.paragraphs[0]
             p.alignment = align
             run = p.add_run()
             run.text = text
-            run.font.size = Pt(font_size)
-            run.font.bold = bold
+            run.font.size    = Pt(font_size)
+            run.font.bold    = bold
             run.font.color.rgb = color
-            return txBox
-
-        def fill_bg(slide, color):
-            from pptx.util import Emu
-            bg = slide.background
-            fill = bg.fill
-            fill.solid()
-            fill.fore_color.rgb = color
 
         topic   = state.get("topic", "데이터 분석 보고서")
         obj     = state.get("objective", "")
         krs     = state.get("key_results", [])
         results = state.get("analysis_results", "")
 
-        # ── Slide 1: Title ────────────────────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, DARK_BLUE)
+        # Slide 1: Title
+        s = blank_slide(); fill_bg(s, DARK_BLUE)
         add_text(s, topic, 1, 2, 11, 1.5, font_size=36, bold=True, align=PP_ALIGN.CENTER)
         add_text(s, f"Data Analysis Report  ·  {datetime.now().strftime('%Y-%m-%d')}",
                  1, 4, 11, 0.6, font_size=16, color=GOLD, align=PP_ALIGN.CENTER)
 
-        # ── Slide 2: OKR ─────────────────────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, ACCENT)
+        # Slide 2: OKR
+        s = blank_slide(); fill_bg(s, ACCENT)
         add_text(s, "OKR — Project Goal", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
         add_text(s, f"Objective: {obj}", 0.5, 1.2, 12, 1, font_size=16)
         for i, kr in enumerate(krs[:3]):
             add_text(s, f"KR{i+1}: {kr}", 0.5, 2.4 + i * 0.9, 12, 0.8, font_size=14)
 
-        # ── Slide 3: Key Findings ─────────────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, DARK_BLUE)
+        # Slide 3: Executive Summary
+        s = blank_slide(); fill_bg(s, DARK_BLUE)
+        add_text(s, "Executive Summary", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
+        summary = _extract_section(report_md, "Executive Summary")
+        add_text(s, summary[:500], 0.5, 1.2, 12, 5, font_size=16)
+
+        # Slide 4: Key Findings
+        s = blank_slide(); fill_bg(s, ACCENT)
         add_text(s, "Key Findings", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
         findings = _extract_section(report_md, "Key Findings")
         add_text(s, findings[:600], 0.5, 1.2, 12, 5, font_size=14)
 
-        # ── Slide 4: Charts ───────────────────────────────────────────────────
+        # Slide 5: Charts
         charts = chart_paths_for_ppt(limit=3)
         if charts:
-            s = blank_slide()
-            fill_bg(s, ACCENT)
+            s = blank_slide(); fill_bg(s, DARK_BLUE)
             add_text(s, "Analysis Charts", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
             positions = [(0.3, 1.2), (4.6, 1.2), (8.9, 1.2)]
-            for i, (chart_path, (x, y)) in enumerate(zip(charts[:3], positions)):
+            for chart_path, (x, y) in zip(charts[:3], positions):
                 try:
                     s.shapes.add_picture(chart_path, Inches(x), Inches(y), Inches(4.0), Inches(5.5))
                 except Exception:
                     pass
 
-        # ── Slide 5: Recommendations ──────────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, DARK_BLUE)
+        # Slide 6: Recommendations
+        s = blank_slide(); fill_bg(s, ACCENT)
         add_text(s, "Recommendations", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
         recs = _extract_section(report_md, "Recommendations")
         add_text(s, recs[:500], 0.5, 1.2, 12, 5, font_size=15)
 
-        # ── Slide 6: Next Steps ───────────────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, ACCENT)
+        # Slide 7: Next Steps
+        s = blank_slide(); fill_bg(s, DARK_BLUE)
         add_text(s, "Next Steps", 0.5, 0.3, 12, 0.7, font_size=24, bold=True, color=GOLD)
         steps = _extract_section(report_md, "Next Steps")
         add_text(s, steps[:400], 0.5, 1.2, 12, 4, font_size=15)
 
-        # ── Slide 7: Blameless Post-mortem ────────────────────────────────────
-        s = blank_slide()
-        fill_bg(s, DARK_BLUE)
+        # Slide 8: Blameless Post-mortem
+        s = blank_slide(); fill_bg(s, ACCENT)
         add_text(s, "🔍 Blameless Post-mortem", 0.5, 0.3, 12, 0.7, font_size=22, bold=True, color=GOLD)
         add_text(s, "시스템 개선 제안 — 누구의 잘못이 아닌 팀 성장을 위해",
                  0.5, 1.1, 12, 0.5, font_size=13, color=GOLD)
@@ -269,19 +308,17 @@ def _generate_ppt(state: AgentState, report_md: str) -> str:
         add_text(s, pm[:600], 0.5, 1.8, 12, 4.5, font_size=12)
 
         # 저장
-        out_dir = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs"
-        )
+        out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "outputs")
         os.makedirs(out_dir, exist_ok=True)
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        safe_topic = state.get("topic", "report")[:20].replace(" ", "_")
-        ppt_path = os.path.join(out_dir, f"{timestamp}_{safe_topic}.pptx")
+        timestamp  = datetime.now().strftime("%Y%m%d_%H%M%S")
+        safe_topic = (state.get("topic") or "report")[:20].replace(" ", "_")
+        ppt_path   = os.path.join(out_dir, f"{timestamp}_{safe_topic}.pptx")
         prs.save(ppt_path)
         print(f"\n📊 PPT 저장 완료: {ppt_path}")
         return ppt_path
 
     except ImportError:
-        print("[경고] python-pptx가 설치되지 않았습니다. pip install python-pptx")
+        print("[경고] python-pptx 미설치. pip install python-pptx")
         return ""
     except Exception as e:
         print(f"[PPT 생성 오류] {e}")
@@ -290,10 +327,9 @@ def _generate_ppt(state: AgentState, report_md: str) -> str:
 
 # ── 헬퍼 ──────────────────────────────────────────────────────────────────────
 def _extract_section(text: str, section_name: str) -> str:
-    """마크다운에서 특정 섹션 텍스트 추출."""
-    lines = text.splitlines()
+    lines     = text.splitlines()
     capturing = False
-    result = []
+    result    = []
     for line in lines:
         if section_name.lower() in line.lower() and line.startswith("#"):
             capturing = True
@@ -311,12 +347,12 @@ def _extract_postmortem(text: str) -> str:
 
 def _extract_sophie_section(text: str) -> str:
     marker = "## 📚 Sophie에게"
-    idx = text.find(marker)
+    idx    = text.find(marker)
     return text[idx:].strip() if idx != -1 else text[-400:]
 
 
 def _parse_vote(text: str, agent: str) -> dict:
-    vote = "PASS" if "VOTE: PASS" in text.upper() else "FAIL"
+    vote   = "PASS" if "VOTE: PASS" in text.upper() else "FAIL"
     reason = ""
     for line in text.splitlines():
         if line.upper().startswith("REASON:"):

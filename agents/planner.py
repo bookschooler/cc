@@ -3,15 +3,15 @@
 책임:
   1. OKR 정의 (Objective + Key Results 3개)
   2. OKR 기반 MECE 분석 계획 수립
-  3. Sophie 친화적 설명 생성
+  3. Self-review (자기 검토)
+  4. Sophie 친화적 설명 생성
 
 방법론: OKRs (Objectives and Key Results)
 """
 
 from graph.state import AgentState
-from agents.base import call_claude
+from agents.base import call_claude, self_review
 
-# ── 에이전트 정체성 ────────────────────────────────────────────────────────────
 AGENT_NAME = "Planner"
 
 SYSTEM = """You are a Lead Data Analyst with 10 years of experience as Google's Chief Data Scientist.
@@ -43,7 +43,7 @@ You set the strategic direction for data analysis projects. Before planning anyt
 ## 📚 Sophie에게
 
 [설명 규칙 엄수]
-- 약어/전문용어는 반드시 Full name 먼저: 예) OKR (Objectives and Key Results: 목표와 핵심 결과)
+- 약어/전문용어는 반드시 Full name 먼저: 예) OKR (Objectives and Key Results: 목표와 핵심 결과), MECE (Mutually Exclusive Collectively Exhaustive: 상호 배타적이고 전체를 포괄하는 원칙)
 - 지금 한 일 → 왜 했는지 → 전체에서 어떤 의미인지 순서로
 - Sophie가 "왜?"라고 물을 것 같은 부분을 먼저 찾아 답해둘 것
 - 숫자/결과는 비즈니스 언어로 번역
@@ -61,19 +61,24 @@ or
 VOTE: FAIL
 REASON: [1-2 sentences explaining what specifically needs to change]"""
 
+_SELF_CHECKLIST = [
+    "OKR Objective가 비즈니스 목표와 직결되는 단 하나의 명확한 문장인가?",
+    "Key Results 3개 모두 측정 가능한 수치(숫자)를 포함하는가?",
+    "MECE 원칙이 지켜졌는가? (분석 단계들이 서로 겹치지 않고 전체를 커버하는가?)",
+    "각 분석 단계에 목표/필요 데이터/예상 결과가 명시되어 있는가?",
+    "Sophie 섹션에 전문용어 Full name 풀이가 포함되어 있는가?",
+]
 
-# ── 메인 에이전트 함수 ─────────────────────────────────────────────────────────
+
 def planner_agent(state: AgentState) -> dict:
-    """OKR 정의 + MECE 분석 계획 수립."""
+    """OKR 정의 + MECE 분석 계획 수립 (with self-review)."""
     topic = state["topic"]
     version = state.get("plan_version", 0)
 
-    # 피드백 수집 (Sophie 또는 peer review)
     feedback_parts = []
     sophie_fb = state.get("plan_sophie_feedback")
     if sophie_fb:
         feedback_parts.append(f"Sophie 피드백: {sophie_fb}")
-
     peer_reviews = state.get("plan_peer_reviews", [])
     fail_reasons = [r["feedback"] for r in peer_reviews if r.get("vote") == "FAIL"]
     if fail_reasons:
@@ -83,9 +88,17 @@ def planner_agent(state: AgentState) -> dict:
     if feedback_parts:
         user_msg += "\n\n[이전 계획에 대한 피드백 — 반드시 반영하세요]\n" + "\n\n".join(feedback_parts)
 
+    # ── 1차 생성 ──────────────────────────────────────────────────────────────
     raw = call_claude(SYSTEM, user_msg, max_tokens=1200)
 
-    # OKR 파싱
+    # ── Self-Review ───────────────────────────────────────────────────────────
+    passed, issues = self_review(raw, _SELF_CHECKLIST, AGENT_NAME)
+    if not passed and issues:
+        print(f"  🔄 [Planner Self-Review] 문제 발견, 수정 중...")
+        revision_msg = user_msg + "\n\n[자기 검토 결과 — 아래 문제를 반드시 수정]\n"
+        revision_msg += "\n".join(f"- {i}" for i in issues)
+        raw = call_claude(SYSTEM, revision_msg, max_tokens=1200)
+
     objective, key_results = _parse_okr(raw)
 
     return {
@@ -94,7 +107,6 @@ def planner_agent(state: AgentState) -> dict:
         "key_results": key_results,
         "plan_explanation": _extract_sophie_section(raw),
         "plan_version": version + 1,
-        # 승인 상태 초기화
         "plan_peer_reviews": [],
         "plan_peer_passed": None,
         "plan_sophie_approved": None,
@@ -102,9 +114,7 @@ def planner_agent(state: AgentState) -> dict:
     }
 
 
-# ── Peer Review 함수 ───────────────────────────────────────────────────────────
 def planner_review(content: str, context: str) -> dict:
-    """다른 에이전트의 결과물을 Planner 관점에서 검토."""
     result = call_claude(
         REVIEW_SYSTEM,
         f"[검토 컨텍스트]\n{context}\n\n[검토 대상]\n{content}",
@@ -113,32 +123,25 @@ def planner_review(content: str, context: str) -> dict:
     return _parse_vote(result, AGENT_NAME)
 
 
-# ── 헬퍼 ──────────────────────────────────────────────────────────────────────
 def _parse_okr(text: str) -> tuple[str, list[str]]:
-    """OKR 섹션에서 Objective와 KR 추출."""
     objective = ""
     key_results = []
     for line in text.splitlines():
-        stripped = line.strip()
-        if stripped.startswith("**Objective:**"):
-            objective = stripped.replace("**Objective:**", "").strip()
-        elif stripped.startswith("- KR"):
-            kr = stripped.lstrip("- ").strip()
-            key_results.append(kr)
+        s = line.strip()
+        if s.startswith("**Objective:**"):
+            objective = s.replace("**Objective:**", "").strip()
+        elif s.startswith("- KR"):
+            key_results.append(s.lstrip("- ").strip())
     return objective, key_results[:3]
 
 
 def _extract_sophie_section(text: str) -> str:
-    """## 📚 Sophie에게 섹션 추출."""
     marker = "## 📚 Sophie에게"
     idx = text.find(marker)
-    if idx == -1:
-        return text[-400:]  # fallback
-    return text[idx:].strip()
+    return text[idx:].strip() if idx != -1 else text[-400:]
 
 
 def _parse_vote(text: str, agent: str) -> dict:
-    """VOTE: PASS/FAIL 형식 파싱."""
     vote = "PASS" if "VOTE: PASS" in text.upper() else "FAIL"
     reason = ""
     for line in text.splitlines():
