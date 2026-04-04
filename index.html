@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>이음 - 대만특색차 국제 자격증 퀴즈</title>
+<style>
+  :root {
+    --primary: #4a7c5e;
+    --primary-dark: #356047;
+    --primary-light: #e8f5ee;
+    --accent: #c8a96e;
+    --accent-dark: #a88548;
+    --bg: #faf8f5;
+    --surface: #ffffff;
+    --text: #2d2d2d;
+    --text-muted: #6b7280;
+    --border: #e5e0d8;
+    --correct: #22c55e;
+    --wrong: #ef4444;
+    --correct-bg: #dcfce7;
+    --wrong-bg: #fee2e2;
+    --shadow: 0 4px 20px rgba(0,0,0,0.08);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+  }
+  .app { width: 100%; max-width: 680px; }
+
+  /* ===== HOME ===== */
+  .home-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 40px;
+    text-align: center;
+  }
+  .home-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--primary-light);
+    color: var(--primary);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+  }
+  .home-title {
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .home-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+  }
+  .section-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    text-align: left;
+  }
+  .option-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+  .option-btn {
+    flex: 1;
+    padding: 10px 6px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text-muted);
+  }
+  .option-btn.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    color: var(--primary);
+  }
+  .start-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    margin-top: 8px;
+  }
+  .start-btn:hover { background: var(--primary-dark); }
+  .start-btn:active { transform: scale(0.98); }
+  .wrong-review-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--surface);
+    color: var(--accent-dark);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 12px;
+  }
+  .wrong-review-btn:hover { background: #fdf3e3; }
+  .wrong-count-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    border-radius: 999px;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-left: 6px;
+  }
+
+  /* ===== SOLVED PROGRESS ===== */
+  .solved-stats {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--primary-light);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .solved-stats strong {
+    color: var(--primary);
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .reset-solved-btn {
+    background: none;
+    border: 1.5px solid var(--primary);
+    color: var(--primary);
+    border-radius: 8px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .reset-solved-btn:hover { background: var(--primary); color: white; }
+  .wrong-retry-btn {
+    width: 100%;
+    padding: 14px;
+    background: var(--surface);
+    color: var(--wrong);
+    border: 2px solid var(--wrong);
+    border-radius: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .wrong-retry-btn:hover { background: var(--wrong-bg); }
+  .review-retry-btn {
+    background: var(--wrong);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .review-retry-btn:hover { background: #dc2626; }
+
+  /* ===== 틀린문제 모드 안내 ===== */
+  .wrong-mode-info {
+    background: var(--wrong-bg);
+    color: var(--wrong);
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .wrong-mode-info strong { font-size: 18px; }
+
+  /* ===== 오답/마스터 뱃지 ===== */
+  .review-item-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .review-item-header .review-q { margin-bottom: 0; flex: 1; }
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 15px;
+    font-weight: 900;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .badge-wrong {
+    background: var(--wrong-bg);
+    color: var(--wrong);
+    border: 2px dashed var(--wrong);
+  }
+  .badge-mastered {
+    background: var(--correct-bg);
+    color: var(--correct);
+    border: 2px solid var(--correct);
+    font-size: 16px;
+  }
+  .review-item-mastered {
+    opacity: 0.85;
+    border-left: 3px solid var(--correct);
+  }
+
+  /* ===== QUIZ ===== */
+  .quiz-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .progress-info {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .quit-btn {
+    font-size: 13px;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+  }
+  .quit-btn:hover { color: var(--text); }
+  .progress-bar {
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .quiz-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 36px 32px;
+  }
+  .question-text {
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.6;
+    margin-bottom: 28px;
+    color: var(--text);
+  }
+  .choices { display: flex; flex-direction: column; gap: 10px; }
+  .choice-btn {
+    padding: 14px 18px;
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    font-size: 15px;
+    font-weight: 500;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .choice-btn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: var(--primary-light);
+  }
+  .choice-btn.correct {
+    border-color: var(--correct);
+    background: var(--correct-bg);
+    color: #15803d;
+  }
+  .choice-btn.wrong {
+    border-color: var(--wrong);
+    background: var(--wrong-bg);
+    color: #dc2626;
+  }
+  .choice-btn:disabled { cursor: default; }
+
+  .answer-box {
+    margin-top: 24px;
+    padding: 20px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    border-left: 4px solid var(--primary);
+  }
+  .answer-box.wrong-answer {
+    background: #fff8f0;
+    border-left-color: var(--accent);
+  }
+  .answer-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .answer-box.wrong-answer .answer-label { color: var(--accent-dark); }
+  .answer-exp {
+    font-size: 14px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .wrong-details {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .detail-item {
+    padding: 10px 14px;
+    background: rgba(0,0,0,0.03);
+    border-radius: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .detail-item strong {
+    color: var(--wrong);
+    margin-right: 6px;
+  }
+  .detail-item.chosen-detail {
+    background: rgba(239,68,68,0.08);
+    border-left: 3px solid var(--wrong);
+    padding-left: 11px;
+  }
+  .next-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .next-btn:hover { background: var(--primary-dark); }
+
+  /* ===== RESULT ===== */
+  .result-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 48px 40px;
+    text-align: center;
+  }
+  .score-circle {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    border: 6px solid var(--primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+  }
+  .score-num {
+    font-size: 42px;
+    font-weight: 900;
+    color: var(--primary);
+    line-height: 1;
+  }
+  .score-denom {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+  .result-title {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+  .result-sub {
+    font-size: 15px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+  }
+  .result-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .result-btn {
+    padding: 14px;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .result-btn.primary {
+    background: var(--primary);
+    color: white;
+    border: none;
+  }
+  .result-btn.primary:hover { background: var(--primary-dark); }
+  .result-btn.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 2px solid var(--border);
+  }
+  .result-btn.secondary:hover { border-color: var(--primary); color: var(--primary); }
+  .result-btn.accent {
+    background: #fdf3e3;
+    color: var(--accent-dark);
+    border: 2px solid var(--accent);
+  }
+  .result-btn.accent:hover { background: #fbe8c8; }
+
+  /* Wrong list in result */
+  .wrong-list {
+    margin-top: 32px;
+    text-align: left;
+  }
+  .wrong-list-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--wrong);
+    margin-bottom: 12px;
+  }
+  .wrong-item-card {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .wrong-item-q {
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .wrong-item-detail {
+    color: var(--text-muted);
+  }
+  .wrong-item-detail .my-ans { color: var(--wrong); font-weight: 600; }
+  .wrong-item-detail .cor-ans { color: var(--correct); font-weight: 600; }
+
+  /* ===== WRONG REVIEW ===== */
+  .review-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 22px;
+    color: var(--text-muted);
+    padding: 4px;
+  }
+  .review-title {
+    font-size: 20px;
+    font-weight: 800;
+  }
+  .review-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    font-size: 15px;
+  }
+
+  /* 카드 네비게이션 바 */
+  .card-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    padding: 0 2px;
+  }
+  .card-nav-btn {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    color: var(--text-muted);
+    line-height: 1;
+  }
+  .card-nav-btn:hover:not(:disabled) {
+    background: var(--primary-light);
+    color: var(--primary);
+    border-color: var(--primary);
+  }
+  .card-nav-btn:disabled { opacity: 0.25; cursor: default; }
+  .card-counter {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  /* 카드 뷰포트 & 트랙 */
+  .review-card-viewport {
+    overflow: hidden;
+    border-radius: 16px;
+  }
+  .review-cards-track {
+    display: flex;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    will-change: transform;
+  }
+
+  /* 개별 카드 */
+  .review-card {
+    min-width: 100%;
+    background: var(--surface);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+  }
+  .review-card-mastered {
+    border-left: 4px solid var(--correct);
+  }
+
+  /* 카드 헤더: 뱃지 + 문제 */
+  .review-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+  .review-card-q {
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  /* 보기 블록 */
+  .review-choices-block {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .review-choice-row {
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--border);
+  }
+  .review-choice-row.correct { border-color: var(--correct); }
+  .review-choice-row.my-wrong { border-color: var(--wrong); }
+
+  .review-choice-label {
+    padding: 10px 14px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .review-choice-row.correct .review-choice-label {
+    background: var(--correct-bg);
+    color: #15803d;
+  }
+  .review-choice-row.my-wrong .review-choice-label {
+    background: var(--wrong-bg);
+    color: var(--wrong);
+  }
+  .review-choice-row.normal .review-choice-label {
+    background: #f5f5f5;
+    color: var(--text-muted);
+  }
+
+  /* 각 보기 풀이 */
+  .review-choice-detail {
+    padding: 8px 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    border-top: 1px solid var(--border);
+    background: rgba(0,0,0,0.02);
+  }
+  .review-choice-row.correct .review-choice-detail {
+    border-top-color: rgba(34,197,94,0.25);
+    background: rgba(34,197,94,0.04);
+    color: #166534;
+  }
+  .review-choice-row.my-wrong .review-choice-detail {
+    border-top-color: rgba(239,68,68,0.2);
+    background: rgba(239,68,68,0.04);
+  }
+
+  .clear-wrong-btn {
+    display: block;
+    margin: 18px auto 0;
+    padding: 10px 20px;
+    background: none;
+    border: 1px solid var(--wrong);
+    border-radius: 8px;
+    color: var(--wrong);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .clear-wrong-btn:hover { background: var(--wrong-bg); }
+
+  .hidden { display: none !important; }
+
+  @media (max-width: 480px) {
+    .home-card, .quiz-card, .result-card { padding: 28px 20px; }
+    .home-title { font-size: 22px; }
+    .question-text { font-size: 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <div id="screen-home">
+    <div class="home-card">
+      <div class="home-badge">🍵 이음</div>
+      <h1 class="home-title">대만특색차<br>국제 자격증 과정</h1>
+      <p class="home-sub">200문항 완전 대비 퀴즈</p>
+
+      <div class="solved-stats">
+        <span>풀었던 문제 <strong id="solved-count">0</strong> / 200</span>
+        <button class="reset-solved-btn" onclick="confirmClearSolved()">초기화</button>
+      </div>
+
+      <div class="section-label">출제 방식</div>
+      <div class="option-group" id="mode-group">
+        <button class="option-btn selected" data-mode="random">🔀 랜덤</button>
+        <button class="option-btn" data-mode="sequential">📋 순서대로</button>
+        <button class="option-btn" data-mode="wrong">✗ 틀린문제만</button>
+      </div>
+
+      <div id="count-section">
+        <div class="section-label">문제 수</div>
+        <div class="option-group" id="count-group">
+          <button class="option-btn selected" data-count="10">10문제</button>
+          <button class="option-btn" data-count="20">20문제</button>
+          <button class="option-btn" data-count="25">25문제</button>
+        </div>
+      </div>
+      <div id="wrong-mode-info" class="wrong-mode-info hidden">
+        틀린 문제 <strong id="active-wrong-count">0</strong>개를 풀게 됩니다
+      </div>
+
+      <button class="start-btn" onclick="startQuiz()">시작하기</button>
+      <button class="wrong-review-btn" onclick="showWrongReview()">
+        오답노트 보기
+        <span class="wrong-count-badge" id="wrong-count-badge">0</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="screen-quiz" class="hidden">
+    <div class="quiz-header">
+      <span class="progress-info" id="progress-info">1 / 10</span>
+      <button class="quit-btn" onclick="quitQuiz()">✕ 종료</button>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="quiz-card">
+      <div class="question-text" id="question-text"></div>
+      <div class="choices" id="choices"></div>
+      <div id="answer-box" class="hidden"></div>
+      <button class="next-btn hidden" id="next-btn" onclick="nextQuestion()">다음 문제 →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="screen-result" class="hidden">
+    <div class="result-card">
+      <div class="score-circle">
+        <div class="score-num" id="score-num">0</div>
+        <div class="score-denom" id="score-denom">/ 10</div>
+      </div>
+      <h2 class="result-title" id="result-title">수고하셨습니다!</h2>
+      <p class="result-sub" id="result-sub"></p>
+      <div class="result-actions">
+        <button class="result-btn primary" onclick="retryQuiz()">다시 풀기</button>
+        <button class="result-btn accent" onclick="showWrongReview()">오답노트 보기</button>
+        <button class="result-btn secondary" onclick="showHome()">홈으로</button>
+      </div>
+      <div class="wrong-list" id="result-wrong-list"></div>
+    </div>
+  </div>
+
+  <!-- WRONG REVIEW -->
+  <div id="screen-review" class="hidden">
+    <div class="review-header">
+      <button class="back-btn" onclick="showHome()">←</button>
+      <h2 class="review-title">오답노트</h2>
+      <button class="review-retry-btn" id="review-retry-btn" onclick="currentMode='wrong'; startQuiz()">다시 풀기 →</button>
+    </div>
+    <div id="review-content"></div>
+  </div>
+
+</div>
+
+<script>
+// ===== API 설정 (QUIZ_DATA 제거 → Supabase에서 불러옴) =====
+let loadedQuestions = [];  // 문제 캐시 (question_text + choices + id 만 있음, 정답 없음)
+const EDGE_FUNC_URL = 'https://tpbmvnoczidczdfxewfw.supabase.co/functions/v1/check-answer'; // 정답 검증 Edge Function
+
+// ===== STATE =====
+let currentMode = 'random';
+let currentCount = 10;
+let sessionQuestions = [];
+let currentIdx = 0;
+let score = 0;
+let answered = false;
+let sessionWrong = [];  // wrong in this session
+let lastSettings = null;
+let quizMode = 'normal'; // 'normal' | 'wrong-retry'
+
+// ===== SUPABASE 설정 =====
+const SB_URL = 'https://tpbmvnoczidczdfxewfw.supabase.co';  // Supabase 프로젝트 URL
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRwYm12bm9jemlkY3pkZnhld2Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3ODE5NzUsImV4cCI6MjA5MDM1Nzk3NX0.DUIfDyUkMH_k5CMiLwG49ukSzWAdZp_V5y4L3zifhMk';  // anon 공개 키
+const SB_HEADERS = {
+  'apikey':        SB_KEY,                 // Supabase 인증 헤더
+  'Authorization': `Bearer ${SB_KEY}`,    // Bearer 토큰
+  'Content-Type':  'application/json'
+};
+
+// 기기 고유 ID: localStorage에 없으면 UUID 생성 후 저장
+function getUserId() {
+  let uid = localStorage.getItem('quizUserId');  // 저장된 ID 읽기
+  if (!uid) {
+    uid = crypto.randomUUID();                   // 새 UUID 생성
+    localStorage.setItem('quizUserId', uid);     // 저장
+  }
+  return uid;
+}
+
+// Supabase에 진행상황 저장 (upsert - 없으면 insert, 있으면 update)
+async function syncToSupabase() {
+  try {
+    await fetch(`${SB_URL}/rest/v1/quiz_progress`, {
+      method: 'POST',
+      headers: { ...SB_HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+      body: JSON.stringify({
+        user_id:       getUserId(),
+        wrong_answers: getWrongAnswers(),   // 오답 목록
+        solved_q:      [...getSolved()],   // 푼 문제 목록
+        updated_at:    new Date().toISOString()
+      })
+    });
+  } catch (e) {
+    console.warn('Supabase 저장 실패:', e);
+  }
+}
+
+// 앱 시작 시 Supabase에서 이전 기록 불러오기
+async function loadFromSupabase() {
+  try {
+    const res = await fetch(
+      `${SB_URL}/rest/v1/quiz_progress?user_id=eq.${getUserId()}&select=*`,
+      { headers: SB_HEADERS }
+    );
+    const rows = await res.json();
+    if (Array.isArray(rows) && rows.length > 0) {
+      const row = rows[0];
+      if (row.wrong_answers) localStorage.setItem('wrongAnswers', JSON.stringify(row.wrong_answers));
+      if (row.solved_q)      localStorage.setItem('solvedQ',      JSON.stringify(row.solved_q));
+    }
+  } catch (e) {
+    console.warn('Supabase 불러오기 실패:', e);
+  }
+}
+
+// ===== WRONG ANSWERS (localStorage) =====
+function getWrongAnswers() {
+  try {
+    return JSON.parse(localStorage.getItem('wrongAnswers') || '[]');
+  } catch { return []; }
+}
+function saveWrongAnswer(item) {
+  let wrongs = getWrongAnswers();
+  // Deduplicate by question text
+  wrongs = wrongs.filter(w => w.q !== item.q);
+  wrongs.push(item);
+  localStorage.setItem('wrongAnswers', JSON.stringify(wrongs));
+}
+function removeWrongAnswer(q) {
+  let wrongs = getWrongAnswers().filter(w => w.q !== q);
+  localStorage.setItem('wrongAnswers', JSON.stringify(wrongs));
+}
+function clearAllWrong() {
+  localStorage.removeItem('wrongAnswers');
+}
+function getActiveWrongs() {
+  return getWrongAnswers().filter(w => !w.mastered);
+}
+function getMasteredWrongs() {
+  return getWrongAnswers().filter(w => w.mastered);
+}
+function masterWrongAnswer(qText) {
+  let wrongs = getWrongAnswers();
+  wrongs = wrongs.map(w => w.q === qText ? {...w, mastered: true} : w);
+  localStorage.setItem('wrongAnswers', JSON.stringify(wrongs));
+}
+function updateWrongBadge() {
+  const count = getActiveWrongs().length;
+  document.getElementById('wrong-count-badge').textContent = count;
+}
+function updateWrongModeInfo() {
+  const count = getActiveWrongs().length;
+  const el = document.getElementById('active-wrong-count');
+  if (el) el.textContent = count;
+}
+
+// ===== SOLVED QUESTIONS (localStorage) =====
+function getSolved() {
+  try { return new Set(JSON.parse(localStorage.getItem('solvedQ') || '[]')); }
+  catch { return new Set(); }
+}
+function markSolved(qText) {
+  const s = getSolved();
+  s.add(qText);
+  localStorage.setItem('solvedQ', JSON.stringify([...s]));
+}
+function clearSolved() {
+  localStorage.removeItem('solvedQ');
+}
+function updateSolvedBadge() {
+  const count = getSolved().size;
+  const el = document.getElementById('solved-count');
+  if (el) el.textContent = count;
+}
+function confirmClearSolved() {
+  if (confirm('풀었던 문제 기록을 초기화하시겠습니까?\n(오답노트는 유지됩니다)')) {
+    clearSolved();
+    updateSolvedBadge();
+  }
+}
+
+// ===== SCREEN UTILS =====
+function showScreen(id) {
+  ['home','quiz','result','review'].forEach(s => {
+    document.getElementById('screen-' + s).classList.add('hidden');
+  });
+  document.getElementById('screen-' + id).classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+function showHome() {
+  updateWrongBadge();
+  updateSolvedBadge();
+  showScreen('home');
+}
+
+// ===== OPTION BUTTONS =====
+document.getElementById('mode-group').addEventListener('click', e => {
+  const btn = e.target.closest('.option-btn');
+  if (!btn) return;
+  document.querySelectorAll('#mode-group .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  currentMode = btn.dataset.mode;
+  const isWrong = currentMode === 'wrong';
+  document.getElementById('count-section').classList.toggle('hidden', isWrong);
+  document.getElementById('wrong-mode-info').classList.toggle('hidden', !isWrong);
+  if (isWrong) updateWrongModeInfo();
+});
+document.getElementById('count-group').addEventListener('click', e => {
+  const btn = e.target.closest('.option-btn');
+  if (!btn) return;
+  document.querySelectorAll('#count-group .option-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  currentCount = parseInt(btn.dataset.count);
+});
+
+// ===== QUIZ LOGIC =====
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+async function startQuiz() {
+  if (currentMode === 'wrong') {
+    // 틀린문제 모드: 로컬 오답 데이터 그대로 사용 (정답/해설 포함)
+    const actives = getActiveWrongs();
+    if (actives.length === 0) {
+      alert('틀린 문제가 없어요! 먼저 퀴즈를 풀어보세요.');
+      return;
+    }
+    quizMode = 'wrong-retry';
+    lastSettings = { mode: 'wrong' };
+    sessionQuestions = shuffle([...actives]); // 로컬 데이터 사용
+    currentIdx = 0; score = 0; sessionWrong = [];
+    showScreen('quiz');
+    renderQuestion();
+    return;
+  }
+
+  // 일반/순서대로 모드: Supabase에서 문제 목록 불러오기
+  quizMode = 'normal';
+  lastSettings = { mode: currentMode, count: currentCount };
+
+  // 로딩 표시
+  showScreen('quiz');
+  document.getElementById('question-text').innerHTML = '⏳ 문제를 불러오는 중...';
+  document.getElementById('choices').innerHTML = '';
+
+  try {
+    // Supabase questions 테이블에서 id + q_num + question_text + choices 가져오기
+    // ※ 정답(correct_option), 해설(explanation)은 포함되지 않음
+    const res = await fetch(
+      `${SB_URL}/rest/v1/questions?select=id,q_num,question_text,choices&order=q_num.asc`,
+      { headers: SB_HEADERS }
+    );
+    const rows = await res.json();
+    if (!Array.isArray(rows) || rows.length === 0) throw new Error('문제 데이터 없음');
+
+    // 필드명을 기존 형식으로 매핑 (q.q, q.a 유지)
+    loadedQuestions = rows.map(r => ({
+      id: r.id,            // Edge Function 호출 시 사용
+      q: r.question_text,  // 문제 텍스트
+      a: r.choices,        // 보기 배열 (정답 번호 없음)
+    }));
+
+    // 풀기 순서 결정
+    let pool;
+    if (currentMode === 'random') {
+      const solved = getSolved();
+      const unsolved = loadedQuestions.filter(q => !solved.has(q.q));
+      const solvedArr = loadedQuestions.filter(q => solved.has(q.q));
+      pool = [...shuffle(unsolved), ...shuffle(solvedArr)]; // 안 푼 문제 먼저
+    } else {
+      pool = [...loadedQuestions]; // 순서대로
+    }
+    sessionQuestions = pool.slice(0, currentCount);
+  } catch (e) {
+    document.getElementById('question-text').innerHTML = '❌ 문제 불러오기 실패. 새로고침 해주세요.';
+    console.error('startQuiz fetch error:', e);
+    return;
+  }
+
+  currentIdx = 0; score = 0; sessionWrong = [];
+  renderQuestion();
+}
+
+function retryQuiz() {
+  if (lastSettings) {
+    currentMode = lastSettings.mode || 'random';
+    if (lastSettings.count) currentCount = lastSettings.count;
+    // sync UI
+    document.querySelectorAll('#mode-group .option-btn').forEach(b => {
+      b.classList.toggle('selected', b.dataset.mode === currentMode);
+    });
+    document.querySelectorAll('#count-group .option-btn').forEach(b => {
+      b.classList.toggle('selected', parseInt(b.dataset.count) === currentCount);
+    });
+    const isWrong = currentMode === 'wrong';
+    document.getElementById('count-section').classList.toggle('hidden', isWrong);
+    document.getElementById('wrong-mode-info').classList.toggle('hidden', !isWrong);
+    if (isWrong) updateWrongModeInfo();
+  }
+  startQuiz();
+}
+
+function renderQuestion() {
+  const q = sessionQuestions[currentIdx];
+  const total = sessionQuestions.length;
+  answered = false;
+
+  document.getElementById('progress-info').textContent = `${currentIdx + 1} / ${total}`;
+  document.getElementById('progress-fill').style.width = `${((currentIdx) / total) * 100}%`;
+
+  document.getElementById('question-text').innerHTML = q.q;
+
+  const choicesEl = document.getElementById('choices');
+  choicesEl.innerHTML = '';
+  q.a.forEach((choice, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = `${i + 1}. ${choice}`;
+    btn.addEventListener('click', () => handleAnswer(i + 1, q));
+    choicesEl.appendChild(btn);
+  });
+
+  document.getElementById('answer-box').classList.add('hidden');
+  document.getElementById('next-btn').classList.add('hidden');
+}
+
+async function handleAnswer(chosen, q) {
+  if (answered) return;
+  answered = true;
+
+  // 보기 버튼 비활성화 (응답 중 중복 클릭 방지)
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach(btn => { btn.disabled = true; });
+
+  const box = document.getElementById('answer-box');
+  box.className = 'answer-box';
+  box.classList.remove('hidden');
+  box.innerHTML = '<div class="answer-label">⏳ 채점 중...</div>'; // 로딩 표시
+
+  let isCorrect, correctOption, exp, detail;
+
+  if (quizMode === 'wrong-retry') {
+    // ── 오답 재풀기: 로컬 데이터로 즉시 판정 ──────────────────
+    isCorrect     = chosen === q.cor;
+    correctOption = q.cor;
+    exp           = q.exp;
+    detail        = q.detail || [];
+  } else {
+    // ── 일반 모드: Edge Function으로 정답 검증 ─────────────────
+    // q.id 만 서버로 보냄 (정답은 서버에만 있음)
+    try {
+      const res = await fetch(EDGE_FUNC_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SB_KEY}` },  // Supabase Edge Function 인증
+        body: JSON.stringify({
+          question_id:    q.id,        // 문제 ID (정답 조회용)
+          chosen_answer:  chosen,      // 사용자가 선택한 번호
+          user_id:        getUserId()  // Rate limit 추적용
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Edge Function 오류');
+
+      isCorrect     = data.is_correct;
+      correctOption = data.correct_option;
+      exp           = data.explanation;
+      detail        = data.detail || [];
+    } catch (e) {
+      box.innerHTML = '<div class="answer-label">❌ 채점 실패. 네트워크를 확인해주세요.</div>';
+      console.error('handleAnswer fetch error:', e);
+      answered = false; // 재시도 허용
+      btns.forEach(btn => { btn.disabled = false; });
+      return;
+    }
+  }
+
+  if (isCorrect) score++;
+
+  // 정답/오답 보기 하이라이트
+  btns.forEach((btn, i) => {
+    if (i + 1 === correctOption) btn.classList.add('correct');
+    else if (i + 1 === chosen)   btn.classList.add('wrong');
+  });
+
+  // 해설 표시
+  box.className = isCorrect ? 'answer-box' : 'answer-box wrong-answer';
+  let html = `<div class="answer-label">${isCorrect ? '✅ 정답입니다!' : '❌ 오답입니다'}</div>`;
+  html += `<div class="answer-exp">${exp}</div>`;
+
+  // 보기별 상세 풀이
+  if (detail && detail.length > 0) {
+    html += `<div class="wrong-details">`;
+    detail.forEach(d => {
+      const isChosen = d.n == chosen;
+      html += `<div class="detail-item${isChosen ? ' chosen-detail' : ''}"><strong>${d.n}번${isChosen ? ' ← 선택' : ''}:</strong> ${d.t}</div>`;
+    });
+    html += `</div>`;
+  }
+  box.innerHTML = html;
+
+  // Next button
+  const nextBtn = document.getElementById('next-btn');
+  nextBtn.textContent = currentIdx + 1 < sessionQuestions.length ? '다음 문제 →' : '결과 보기';
+  nextBtn.classList.remove('hidden');
+
+  // 풀었던 문제로 기록
+  markSolved(q.q);
+  updateSolvedBadge();
+
+  // Save wrong answer to localStorage
+  // correctOption, exp, detail은 Edge Function 또는 로컬 데이터에서 받아온 변수
+  if (!isCorrect) {
+    sessionWrong.push({ q: q.q, a: q.a, cor: correctOption, exp, myAns: chosen, detail });
+    if (quizMode !== 'wrong-retry') {
+      saveWrongAnswer({ q: q.q, a: q.a, cor: correctOption, exp, myAns: chosen, detail });
+    }
+  } else if (quizMode === 'wrong-retry') {
+    masterWrongAnswer(q.q);  // 틀렸다 맞힌 문제: mastered 처리
+    updateWrongBadge();
+  }
+}
+
+function nextQuestion() {
+  currentIdx++;
+  if (currentIdx >= sessionQuestions.length) {
+    showResult();
+  } else {
+    renderQuestion();
+    document.getElementById('progress-fill').style.width = `${(currentIdx / sessionQuestions.length) * 100}%`;
+  }
+}
+
+function quitQuiz() {
+  if (confirm('퀴즈를 종료하시겠습니까?')) showHome();
+}
+
+// ===== RESULT =====
+function showResult() {
+  const total = sessionQuestions.length;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById('score-num').textContent = score;
+  document.getElementById('score-denom').textContent = `/ ${total}`;
+
+  let title, sub;
+  if (pct === 100) { title = '완벽합니다! 🎉'; sub = '모든 문제를 맞히셨습니다!'; }
+  else if (pct >= 80) { title = '훌륭해요! 🌟'; sub = `정답률 ${pct}% — 합격권입니다!`; }
+  else if (pct >= 60) { title = '좋습니다! 📖'; sub = `정답률 ${pct}% — 조금만 더 공부하면 합격!`; }
+  else { title = '수고하셨습니다 💪'; sub = `정답률 ${pct}% — 오답노트로 복습해보세요!`; }
+
+  document.getElementById('result-title').textContent = title;
+  document.getElementById('result-sub').textContent = sub;
+
+  // Wrong list in result
+  const wrongListEl = document.getElementById('result-wrong-list');
+  if (sessionWrong.length > 0) {
+    let html = `<div class="wrong-list-title">이번 오답 ${sessionWrong.length}개</div>`;
+    sessionWrong.slice(0, 5).forEach(w => {
+      html += `<div class="wrong-item-card">
+        <div class="wrong-item-q">${w.q}</div>
+        <div class="wrong-item-detail">
+          <span class="my-ans">내 답: ${w.myAns}번. ${w.a[w.myAns - 1]}</span><br>
+          <span class="cor-ans">정답: ${w.cor}번. ${w.a[w.cor - 1]}</span>
+        </div>
+      </div>`;
+    });
+    if (sessionWrong.length > 5) {
+      html += `<div style="text-align:center;font-size:13px;color:var(--text-muted);padding:8px">외 ${sessionWrong.length - 5}개 → 오답노트에서 확인</div>`;
+    }
+    wrongListEl.innerHTML = html;
+  } else {
+    wrongListEl.innerHTML = '';
+  }
+
+  updateWrongBadge();
+  showScreen('result');
+}
+
+// ===== WRONG REVIEW (카드 스와이프) =====
+let reviewIdx = 0;   // 현재 보여주는 카드 인덱스
+let reviewCards = []; // 정렬된 오답 배열
+
+function showWrongReview() {
+  reviewCards = getWrongAnswers(); // mastered 포함 전체
+  const el = document.getElementById('review-content');
+  const retryBtn = document.getElementById('review-retry-btn');
+  const activeCount = getActiveWrongs().length;
+  // 아직 틀린 문제가 남아있을 때만 "다시 풀기" 버튼 표시
+  if (retryBtn) retryBtn.style.display = activeCount > 0 ? '' : 'none';
+
+  if (reviewCards.length === 0) {
+    el.innerHTML = '<div class="review-empty">오답이 없습니다 🎉<br>문제를 풀면 틀린 문제가 여기에 저장됩니다.</div>';
+    showScreen('review');
+    return;
+  }
+
+  // 아직 틀린 문제 먼저, 마스터된 문제 나중에 정렬
+  reviewCards = [...reviewCards].sort((a, b) => (a.mastered ? 1 : 0) - (b.mastered ? 1 : 0));
+  reviewIdx = 0;
+
+  el.innerHTML = buildReviewCarouselHTML();
+  setupReviewTouch();
+  showScreen('review');
+}
+
+function buildReviewCarouselHTML() {
+  const total = reviewCards.length;
+  let cardsHTML = '';
+
+  reviewCards.forEach(w => {
+    const isMastered = !!w.mastered;
+    const badge = isMastered
+      ? `<span class="status-badge badge-mastered" title="틀렸다 맞힌 문제">⊘</span>`
+      : `<span class="status-badge badge-wrong" title="아직 틀린 문제">╱</span>`;
+
+    // 각 보기별 풀이 블록 생성
+    let choicesHTML = '';
+    w.a.forEach((choice, i) => {
+      const optNum = i + 1;
+      const isCor = optNum === w.cor;           // 정답 보기
+      const isMyWrong = optNum === w.myAns;     // 내가 고른 오답
+      const rowClass = isCor ? 'correct' : (isMyWrong ? 'my-wrong' : 'normal');
+
+      // 이 보기의 풀이: 정답은 exp, 나머지는 detail 배열에서 찾기
+      let detailText = '';
+      if (isCor) {
+        detailText = w.exp; // 정답 보기엔 메인 해설
+      } else {
+        const found = w.detail && w.detail.find(d => String(d.n) === String(optNum));
+        if (found) detailText = found.t;
+      }
+
+      const suffix = isCor ? ' ✓ 정답' : (isMyWrong ? ' ← 내 답' : '');
+      choicesHTML += `<div class="review-choice-row ${rowClass}">
+        <div class="review-choice-label">${optNum}. ${choice}${suffix}</div>
+        ${detailText ? `<div class="review-choice-detail">${detailText}</div>` : ''}
+      </div>`;
+    });
+
+    cardsHTML += `<div class="review-card${isMastered ? ' review-card-mastered' : ''}">
+      <div class="review-card-header">
+        ${badge}
+        <div class="review-card-q">${w.q}</div>
+      </div>
+      <div class="review-choices-block">${choicesHTML}</div>
+    </div>`;
+  });
+
+  return `
+    <div class="card-nav">
+      <button class="card-nav-btn" id="review-prev-btn" onclick="reviewGo(reviewIdx - 1)" disabled>‹</button>
+      <span class="card-counter" id="review-counter">1 / ${total}</span>
+      <button class="card-nav-btn" id="review-next-btn" onclick="reviewGo(reviewIdx + 1)" ${total <= 1 ? 'disabled' : ''}>›</button>
+    </div>
+    <div class="review-card-viewport" id="review-viewport">
+      <div class="review-cards-track" id="review-track">${cardsHTML}</div>
+    </div>
+    <button class="clear-wrong-btn" onclick="clearWrongAndRefresh()">오답 전체 삭제</button>
+  `;
+}
+
+function reviewGo(idx) {
+  const total = reviewCards.length;
+  if (idx < 0 || idx >= total) return;
+  reviewIdx = idx;
+
+  // 슬라이드 이동 (translateX로 현재 카드 표시)
+  const track = document.getElementById('review-track');
+  if (track) track.style.transform = `translateX(-${reviewIdx * 100}%)`;
+
+  // 카운터 업데이트
+  const counter = document.getElementById('review-counter');
+  if (counter) counter.textContent = `${reviewIdx + 1} / ${total}`;
+
+  // 버튼 활성화/비활성화
+  const prevBtn = document.getElementById('review-prev-btn');
+  const nextBtn = document.getElementById('review-next-btn');
+  if (prevBtn) prevBtn.disabled = reviewIdx === 0;
+  if (nextBtn) nextBtn.disabled = reviewIdx === total - 1;
+}
+
+function setupReviewTouch() {
+  // 터치 스와이프 지원
+  const viewport = document.getElementById('review-viewport');
+  if (!viewport) return;
+  let startX = 0;
+  viewport.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX; // 터치 시작 X 좌표 저장
+  }, { passive: true });
+  viewport.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX; // 이동 거리
+    if (Math.abs(diff) > 50) reviewGo(reviewIdx + (diff > 0 ? 1 : -1)); // 50px 이상 스와이프시 카드 이동
+  }, { passive: true });
+}
+
+function clearWrongAndRefresh() {
+  if (confirm('오답노트를 모두 지우시겠습니까?')) {
+    clearAllWrong();
+    showWrongReview();
+    updateWrongBadge();
+    updateWrongModeInfo();
+  }
+}
+
+// ===== INIT =====
+(async () => {
+  await loadFromSupabase(); // Supabase에서 이전 기록 불러오기
+  updateWrongBadge();       // 불러온 데이터로 UI 업데이트
+  updateSolvedBadge();
+  updateWrongModeInfo();
+})();
+</script>
+</body>
+</html>

@@ -1,95 +1,71 @@
-# 컨설팅 에이전트팀 - CLAUDE.md
+# cc/ — 데이터 분석 에이전트팀
 
-이 파일은 Claude Code가 프로젝트 컨텍스트를 유지하기 위한 파일입니다.
+## 팀 구성 (Google 수석 데이터 사이언티스트 기준)
 
-## 프로젝트 목적
+| 에이전트 | 역할 | 방법론 |
+|---------|------|--------|
+| Planner | Lead Data Analyst — OKR 정의 + MECE 계획 | OKRs |
+| Researcher | Data Science Researcher — 가설 + 방법론 설계 | Design Sprint |
+| Analyst | Senior Data Scientist — 코드 작성 + 실행 | Launch and Iterate |
+| Reviewer | QA Engineer — 코드/통계 검토 | Launch and Iterate |
+| Reporter | Data Storyteller — PPT + 보고서 + Post-mortem | Blameless Post-mortem |
 
-LangGraph + Claude API 기반 **데이터 분석 컨설팅 에이전트팀** MVP.
-경제/금융 주제를 입력하면 에이전트들이 협력해 데이터를 수집하고 분석 계획을 작성한다.
-
-## 실행 방법
-
+## 실행
 ```bash
-cd cc/
 pip install -r requirements.txt
-
-# .env 파일에 ANTHROPIC_API_KEY 설정 (상위 디렉토리에 있어도 됨)
 python main.py "분석 주제"
-# 예: python main.py "삼성전자 주가 분석"
 ```
 
-## 현재 에이전트 플로우 (MVP)
-
+## 플로우
 ```
-[사용자 입력: 분석 주제]
-        ↓
-   PM Agent → 분석 계획 생성 (Claude Haiku)
-        ↓
-   [Human Approval] ← y/n/r 입력
-        ↓
-   Searcher Agent → 미니플랜 제시
-        ↓
-   [Human Approval] ← y/n/r 입력
-        ↓
-   Searcher Agent → 데이터 수집 (yfinance)
-        ↓
-   outputs/ 에 JSON 저장
+planner → peer_review_plan → sophie_plan [interrupt]
+→ researcher → peer_review_methodology → sophie_methodology [interrupt]
+→ analyst → reviewer (loop ≤3) → peer_review_analysis → sophie_analysis [interrupt]
+→ reporter → peer_review_report → sophie_report [interrupt]
+→ save_output → END
 ```
 
-## 파일 구조
+## Peer Review
+- 각 단계 완료 후 나머지 4 에이전트가 자동 투표 (PASS/FAIL)
+- 4명 중 3명 이상 PASS → Sophie 투표로 이동
+- Sophie (y=PASS / n=중단 / r=수정 요청)
 
+## Sophie 점수 시스템
+- 프로젝트 완료 후 각 에이전트 1~5점 평가
+- 저장: `memory/agent_scores.json`
+- 기준: 질문 없이 이해할 수 있었는가, 궁금한 것을 먼저 설명해줬는가
+
+## 핵심 설계 규칙
+- 모델: `claude-haiku-4-5-20251001` (토큰 절약)
+- 코드 실행: subprocess + 임시 파일 (tools/code_executor.py)
+- PPT 출력: python-pptx → `outputs/*.pptx`
+- 차트: matplotlib → `outputs/charts/*.png`
+- 체크포인터: SqliteSaver → `checkpoints.db`
+- Post-mortem 누적: `memory/postmortem_log.md`
+
+## 파일 맵
 ```
-cc/
-├── main.py                 # CLI 진입점
-├── requirements.txt
-├── graph/
-│   ├── state.py            # AgentState TypedDict
-│   ├── graph.py            # LangGraph StateGraph (interrupt 포함)
-│   └── router.py           # 조건부 라우팅
-├── agents/
-│   ├── base.py             # Claude Haiku 호출 공통
-│   ├── pm.py               # PM Agent (계획 생성)
-│   └── searcher.py         # Searcher (미니플랜 → 실행)
-└── tools/
-    └── search_tools.py     # yfinance (무료, 출처 포함)
+agents/planner.py    → OKR + MECE 계획
+agents/researcher.py → Design Sprint + ArXiv + 방법론
+agents/analyst.py    → 코드 작성 + REPL 실행
+agents/reviewer.py   → QA 검토 (코드 + 통계)
+agents/reporter.py   → PPT + MD + Post-mortem
+agents/base.py       → Claude API 공통 호출
+tools/search_tools.py → yfinance + firecrawl
+tools/arxiv_tools.py  → ArXiv API
+tools/code_executor.py → Python REPL
+tools/chart_tools.py   → 차트 유틸리티
+graph/state.py       → AgentState TypedDict
+graph/graph.py       → StateGraph 정의
+graph/router.py      → 조건부 라우팅
+graph/peer_review.py → Peer review 공통 로직
+main.py              → CLI 진입점 + Sophie 인터페이스
 ```
 
-## 주요 설계 원칙
-
-- **토큰 절약**: claude-haiku-4-5-20251001 사용, MCP보다 CLI 우선
-- **Plan Approval**: 각 에이전트 실행 전 사람 승인 필수 (y/n/r)
-- **출처 표기**: Searcher는 신뢰 출처만 + source_url 필수
-- **체크포인터**: SqliteSaver → 세션 재개 가능 (`checkpoints.db`)
-
-## 다음 단계 (TODO)
-
-1. **Critic Agent** 추가 (계획 자동 검증, 점수 부여)
-2. **Analyst Agent** 추가 (pandas 분석, matplotlib 차트)
-3. **Designer Agent** 추가 (python-pptx 보고서)
-4. **Supabase 연결** (memory/store.py - 에이전트 학습 저장)
-5. **FRED API** 추가 (미국 경제지표)
-6. **DART API** 추가 (한국 전자공시)
-7. **KOSIS API** 추가 (통계청)
-8. **firecrawl CLI** 연동 (웹 스크래핑)
-
-## 기술 스택
-
-- LangGraph >= 0.2.0 (StateGraph, interrupt_before, SqliteSaver)
-- anthropic >= 0.40.0 (Claude Haiku)
-- yfinance (Yahoo Finance 데이터)
-- rich (터미널 UI)
-
-## 환경변수
-
-```env
-# 필수
-ANTHROPIC_API_KEY=sk-ant-...
-
-# 다음 단계에서 추가
-# SUPABASE_URL=
-# SUPABASE_KEY=
-# FRED_API_KEY=
-# DART_API_KEY=
-# KOSIS_API_KEY=
-# TAVILY_API_KEY=
-```
+## 새 에이전트 추가 패턴
+1. `agents/<name>.py` 생성 — `{name}_agent()` + `{name}_review()` 구현
+2. `graph/state.py`에 필드 추가
+3. `graph/graph.py`에 노드 추가 + interrupt 설정
+4. `graph/router.py`에 라우팅 함수 추가
+5. `graph/peer_review.py`의 `_get_reviewers()`에 등록
+6. `main.py`의 `INTERRUPT_CONFIG`에 Sophie 표시 설정 추가

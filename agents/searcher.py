@@ -1,6 +1,6 @@
 from graph.state import AgentState
 from agents.base import call_claude
-from tools.search_tools import get_multiple_stocks, extract_tickers_from_plan
+from tools.search_tools import get_multiple_stocks, extract_tickers_from_plan, firecrawl_search
 
 PLAN_SYSTEM = """당신은 데이터 검색 에이전트입니다.
 분석 계획을 보고 어떤 데이터를 어디서 가져올지 간결한 검색 계획을 작성하세요.
@@ -8,7 +8,8 @@ PLAN_SYSTEM = """당신은 데이터 검색 에이전트입니다.
 형식:
 검색할 데이터:
 1. [데이터명] - ticker: [코드] / 출처: Yahoo Finance
-2. ...
+2. [뉴스/기사] - 키워드: [검색어] / 출처: Firecrawl 웹검색
+...
 
 예상 소요: ~N초"""
 
@@ -49,5 +50,14 @@ def searcher_exec_agent(state: AgentState) -> dict:
 
     print(f"  📡 수집 중: {', '.join(tickers)}")
     results = get_multiple_stocks(tickers)
+
+    # 계획에 뉴스/기사/최신동향 키워드가 있으면 firecrawl 검색 추가
+    news_keywords = ["뉴스", "기사", "최신", "동향", "전망", "분석", "news", "trend", "outlook"]
+    if any(kw in combined.lower() for kw in news_keywords):
+        # 분석 주제를 검색 쿼리로 사용
+        topic = state.get("topic", plan[:50])
+        print(f"  🌐 웹 검색 중: {topic}")
+        web_results = firecrawl_search(topic, limit=3)
+        results = results + web_results
 
     return {"search_results": results}
