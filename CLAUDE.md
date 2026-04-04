@@ -1,4 +1,4 @@
-# cc/ — 데이터 분석 에이전트팀
+# DESA — Data & Engineering Science Analysts
 
 ## 팀 구성 (Google 수석 데이터 사이언티스트 기준)
 
@@ -13,7 +13,14 @@
 ## 실행
 ```bash
 pip install -r requirements.txt
-python main.py "분석 주제"
+
+python main.py "분석 주제"                    # DESA 전체 팀
+python main.py "주제" --agent planner         # Planner만 단독 실행
+python main.py "주제" --agent researcher      # Researcher만 단독 실행
+python main.py "주제" --agent analyst         # Analyst만 단독 실행
+python main.py "주제" --agent reviewer        # Reviewer만 단독 실행
+python main.py "주제" --agent reporter        # Reporter만 단독 실행
+python main.py "주제" --from researcher       # Researcher부터 끝까지
 ```
 
 ## 플로우

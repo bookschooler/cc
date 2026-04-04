@@ -120,7 +120,7 @@ def _append_postmortem(state: AgentState):
 
 
 # ── 그래프 빌드 ────────────────────────────────────────────────────────────────
-def build_graph(db_path: str | None = None):
+def build_graph(db_path: str | None = None, entry_point: str = "planner"):
     builder = StateGraph(AgentState)
 
     # 에이전트 노드
@@ -154,7 +154,7 @@ def build_graph(db_path: str | None = None):
     builder.add_node("save_output", _save_output)
 
     # ── 엣지 ──────────────────────────────────────────────────────────────────
-    builder.set_entry_point("planner")
+    builder.set_entry_point(entry_point)
     builder.add_edge("planner", "peer_review_plan")
 
     builder.add_conditional_edges("peer_review_plan", route_after_peer_review_plan,

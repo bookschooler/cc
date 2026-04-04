@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
-"""데이터 분석 에이전트팀 CLI 진입점.
+"""DESA — Data & Engineering Science Analysts
 
 사용법:
-  python main.py "분석 주제"
-  python main.py "고객 이탈률 분석"
+  python main.py "분석 주제"                       # DESA 전체 팀 실행
+  python main.py "분석 주제" --agent planner       # Planner만 단독 실행
+  python main.py "분석 주제" --agent researcher    # Researcher만 단독 실행
+  python main.py "분석 주제" --agent analyst       # Analyst만 단독 실행
+  python main.py "분석 주제" --agent reviewer      # Reviewer만 단독 실행
+  python main.py "분석 주제" --agent reporter      # Reporter만 단독 실행
+  python main.py "분석 주제" --from researcher     # Researcher부터 끝까지 실행
 
-팀 구성:
-  Planner (Lead Data Analyst)  → OKRs + MECE 계획
-  Researcher (Data Scientist)  → Design Sprint + 방법론
-  Analyst (Senior DS)          → 코드 작성 + 실행
-  Reviewer (QA Engineer)       → 코드/통계 검토
-  Reporter (Data Storyteller)  → PPT + 보고서 + Post-mortem
+DESA 팀:
+  Planner    (Lead Data Analyst)       → OKRs + MECE 계획
+  Researcher (Data Science Researcher) → Design Sprint + 방법론
+  Analyst    (Senior Data Scientist)   → 코드 작성 + 실행
+  Reviewer   (QA Engineer)             → 코드/통계 검토
+  Reporter   (Data Storyteller)        → PPT + 보고서 + Post-mortem
 
 Peer Review: 각 단계 완료 후 4명 자동 투표 → Sophie 최종 투표
 """
@@ -19,6 +24,7 @@ import sys
 import json
 import os
 import uuid
+import argparse
 from dotenv import load_dotenv
 from rich.console import Console
 from rich.panel import Panel
@@ -136,20 +142,8 @@ def _ask_sophie(prompt_text: str, stage: str) -> tuple[bool, str]:
 
 
 # ── 메인 실행 ─────────────────────────────────────────────────────────────────
-def run(topic: str):
-    from graph.graph import build_graph
-
-    # 시작 시 팀 점수 현황 표시
-    scores = _load_scores()
-    if any(scores.get(n) for n in AGENT_NAMES):
-        _show_team_scores(scores)
-        console.print()
-
-    graph = build_graph()
-    thread_id = str(uuid.uuid4())
-    config = {"configurable": {"thread_id": thread_id}}
-
-    initial_state = {
+def _run_graph_loop(graph, initial_state, config):
+    """그래프 실행 + Sophie interrupt 처리 공통 루프."""
         "topic": topic,
         # Planner
         "objective": None, "key_results": [], "plan": None,
@@ -175,8 +169,6 @@ def run(topic: str):
         # Common
         "errors": [], "is_complete": False,
     }
-
-    console.print(f"\n[bold green]🚀 분석 시작:[/bold green] {topic}\n")
 
     # ── Interrupt 처리 맵 ────────────────────────────────────────────────────
     INTERRUPT_CONFIG = {
@@ -235,7 +227,7 @@ def run(topic: str):
         next_nodes = snapshot.next
 
         if state.get("is_complete") or not next_nodes:
-            console.print("\n[bold green]✅ 에이전트팀 작업 완료![/bold green]")
+            console.print("\n[bold green]✅ DESA 작업 완료![/bold green]")
             # 최종 결과 경로 출력
             ppt = state.get("final_report_ppt_path")
             if ppt:
@@ -286,14 +278,189 @@ def run(topic: str):
     _collect_sophie_scores()
 
 
-def main():
-    if len(sys.argv) < 2:
-        console.print("[red]사용법: python main.py \"분석 주제\"[/red]")
-        console.print('예시:   python main.py "고객 이탈률 분석"')
+def run(topic: str):
+    from graph.graph import build_graph
+
+    scores = _load_scores()
+    if any(scores.get(n) for n in AGENT_NAMES):
+        _show_team_scores(scores)
+        console.print()
+
+    graph = build_graph()
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+
+    initial_state = {
+        "topic": topic,
+        "objective": None, "key_results": [], "plan": None,
+        "plan_explanation": None, "plan_version": 0,
+        "plan_peer_reviews": [], "plan_peer_passed": None,
+        "plan_sophie_approved": None, "plan_sophie_feedback": None,
+        "hypothesis": None, "poc_result": None,
+        "methodology": None, "methodology_explanation": None, "methodology_version": 0,
+        "methodology_peer_reviews": [], "methodology_peer_passed": None,
+        "methodology_sophie_approved": None, "methodology_sophie_feedback": None,
+        "code": None, "analysis_results": None, "code_error": None,
+        "analysis_explanation": None, "analysis_iteration": 0,
+        "review_passed": None, "review_feedback": None, "review_iteration": 0,
+        "analysis_peer_reviews": [], "analysis_peer_passed": None,
+        "analysis_sophie_approved": None, "analysis_sophie_feedback": None,
+        "final_report_md": None, "final_report_ppt_path": None,
+        "postmortem": None, "report_explanation": None,
+        "report_peer_reviews": [], "report_peer_passed": None,
+        "report_sophie_approved": None, "report_sophie_feedback": None,
+        "errors": [], "is_complete": False,
+    }
+
+    console.print(f"\n[bold green]🚀 DESA 분석 시작:[/bold green] {topic}\n")
+    _run_graph_loop(graph, initial_state, config)
+
+
+AGENT_ORDER = ["planner", "researcher", "analyst", "reviewer", "reporter"]
+
+# ── 단독 에이전트 실행 ─────────────────────────────────────────────────────────
+def run_single_agent(topic: str, agent_name: str):
+    """단 한 명의 에이전트만 단독으로 호출."""
+    from graph.state import AgentState
+
+    # 단독 실행용 최소 상태
+    state: AgentState = {
+        "topic": topic,
+        "objective": None, "key_results": [], "plan": None,
+        "plan_explanation": None, "plan_version": 0,
+        "plan_peer_reviews": [], "plan_peer_passed": None,
+        "plan_sophie_approved": None, "plan_sophie_feedback": None,
+        "hypothesis": None, "poc_result": None,
+        "methodology": None, "methodology_explanation": None, "methodology_version": 0,
+        "methodology_peer_reviews": [], "methodology_peer_passed": None,
+        "methodology_sophie_approved": None, "methodology_sophie_feedback": None,
+        "code": None, "analysis_results": None, "code_error": None,
+        "analysis_explanation": None, "analysis_iteration": 0,
+        "review_passed": None, "review_feedback": None, "review_iteration": 0,
+        "analysis_peer_reviews": [], "analysis_peer_passed": None,
+        "analysis_sophie_approved": None, "analysis_sophie_feedback": None,
+        "final_report_md": None, "final_report_ppt_path": None,
+        "postmortem": None, "report_explanation": None,
+        "report_peer_reviews": [], "report_peer_passed": None,
+        "report_sophie_approved": None, "report_sophie_feedback": None,
+        "errors": [], "is_complete": False,
+    }
+
+    agent_map = {
+        "planner":    ("agents.planner",    "planner_agent",    "plan",            "plan_explanation",    "📋 Planner",    "blue"),
+        "researcher": ("agents.researcher", "researcher_agent", "methodology",     "methodology_explanation", "🔬 Researcher", "cyan"),
+        "analyst":    ("agents.analyst",    "analyst_agent",    "analysis_results","analysis_explanation","💻 Analyst",    "green"),
+        "reviewer":   ("agents.reviewer",   "reviewer_agent",   "review_feedback", None,                  "🔍 Reviewer",   "yellow"),
+        "reporter":   ("agents.reporter",   "reporter_agent",   "final_report_md", "report_explanation",  "📊 Reporter",   "magenta"),
+    }
+
+    if agent_name not in agent_map:
+        console.print(f"[red]알 수 없는 에이전트: {agent_name}[/red]")
+        console.print(f"사용 가능: {', '.join(agent_map.keys())}")
         sys.exit(1)
 
-    topic = " ".join(sys.argv[1:])
-    run(topic)
+    module_path, func_name, content_key, explain_key, title, color = agent_map[agent_name]
+
+    import importlib
+    module = importlib.import_module(module_path)
+    agent_fn = getattr(module, func_name)
+
+    console.print(f"\n[bold green]🚀 DESA {agent_name.capitalize()} 단독 실행:[/bold green] {topic}\n")
+    result = agent_fn(state)
+    state.update(result)
+
+    # 결과 출력
+    content = state.get(content_key, "") or ""
+    if content:
+        _print_agent_output(title, content[:2000], color)
+
+    if explain_key:
+        explanation = state.get(explain_key, "") or ""
+        if explanation:
+            console.print(Panel(Markdown(explanation), title="📚 Sophie에게",
+                                border_style="yellow", padding=(1, 2)))
+
+    console.print(f"\n[bold green]✅ {agent_name.capitalize()} 완료![/bold green]")
+
+
+# ── 특정 에이전트부터 실행 ─────────────────────────────────────────────────────
+def run_from_agent(topic: str, from_agent: str):
+    """지정한 에이전트부터 끝까지 실행 (이전 단계는 빈 상태로 시작)."""
+    if from_agent not in AGENT_ORDER:
+        console.print(f"[red]알 수 없는 에이전트: {from_agent}[/red]")
+        console.print(f"사용 가능: {', '.join(AGENT_ORDER)}")
+        sys.exit(1)
+
+    from graph.graph import build_graph
+
+    # entry_point를 그래프 노드명으로 변환
+    node_map = {
+        "planner":    "planner",
+        "researcher": "researcher",
+        "analyst":    "analyst",
+        "reviewer":   "reviewer",
+        "reporter":   "reporter",
+    }
+    entry = node_map[from_agent]
+
+    console.print(f"\n[bold green]🚀 DESA — {from_agent.capitalize()}부터 실행:[/bold green] {topic}\n")
+    graph = build_graph(entry_point=entry)
+
+    thread_id = str(uuid.uuid4())
+    config = {"configurable": {"thread_id": thread_id}}
+    initial_state = {
+        "topic": topic,
+        "objective": None, "key_results": [], "plan": f"[{from_agent}부터 실행 — 이전 단계 생략]",
+        "plan_explanation": None, "plan_version": 1,
+        "plan_peer_reviews": [], "plan_peer_passed": True,
+        "plan_sophie_approved": True, "plan_sophie_feedback": None,
+        "hypothesis": None, "poc_result": None,
+        "methodology": f"[{from_agent}부터 실행 — 이전 단계 생략]",
+        "methodology_explanation": None, "methodology_version": 1,
+        "methodology_peer_reviews": [], "methodology_peer_passed": True,
+        "methodology_sophie_approved": True, "methodology_sophie_feedback": None,
+        "code": None, "analysis_results": None, "code_error": None,
+        "analysis_explanation": None, "analysis_iteration": 0,
+        "review_passed": None, "review_feedback": None, "review_iteration": 0,
+        "analysis_peer_reviews": [], "analysis_peer_passed": None,
+        "analysis_sophie_approved": None, "analysis_sophie_feedback": None,
+        "final_report_md": None, "final_report_ppt_path": None,
+        "postmortem": None, "report_explanation": None,
+        "report_peer_reviews": [], "report_peer_passed": None,
+        "report_sophie_approved": None, "report_sophie_feedback": None,
+        "errors": [], "is_complete": False,
+    }
+
+    # 전체 팀 run() 루프 재사용
+    _run_graph_loop(graph, initial_state, config)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        prog="DESA",
+        description="DESA — Data & Engineering Science Analysts 팀",
+    )
+    parser.add_argument("topic", nargs="+", help="분석 주제")
+    parser.add_argument(
+        "--agent", "-a",
+        choices=AGENT_ORDER,
+        help="단독 실행할 에이전트 (planner/researcher/analyst/reviewer/reporter)",
+    )
+    parser.add_argument(
+        "--from", "-f",
+        dest="from_agent",
+        choices=AGENT_ORDER,
+        help="이 에이전트부터 끝까지 실행",
+    )
+    args = parser.parse_args()
+    topic = " ".join(args.topic)
+
+    if args.agent:
+        run_single_agent(topic, args.agent)
+    elif args.from_agent:
+        run_from_agent(topic, args.from_agent)
+    else:
+        run(topic)
 
 
 if __name__ == "__main__":
