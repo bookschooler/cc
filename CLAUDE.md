@@ -1,3 +1,5 @@
+> Last auto-reviewed: 2026-08-09
+
 # DESA — Data & Engineering Science Analysts
 
 ## 팀 구성 (Google 수석 데이터 사이언티스트 기준)
@@ -76,3 +78,32 @@ main.py              → CLI 진입점 + Sophie 인터페이스
 4. `graph/router.py`에 라우팅 함수 추가
 5. `graph/peer_review.py`의 `_get_reviewers()`에 등록
 6. `main.py`의 `INTERRUPT_CONFIG`에 Sophie 표시 설정 추가
+
+## 시스템 건강 규칙 (2026-08-09 추가)
+
+### 코드 품질
+- `main.py` 수정 후 반드시 `python -c "import ast; ast.parse(open('main.py').read()); print('OK')"` 실행
+- `graph/graph.py` 수정 후 `python -c "from graph.graph import build_graph; print('OK')"` 실행
+- 리팩토링 시 불필요한 코드 블록(고아 딕셔너리, 미사용 변수)이 함수 내에 남지 않도록 주의
+
+### 레거시 파일 관리
+- `agents/pm.py`, `agents/searcher.py` 는 초기 아키텍처 잔재 — 현재 `AgentState`에 없는 필드를 참조하므로 현재 그래프에서 사용하지 말 것
+- 새 파일 추가 시 반드시 `graph/state.py`에 대응 필드를 먼저 추가하고, `graph/graph.py` 노드에도 등록할 것
+- 파일맵(`## 파일 맵` 섹션)을 항상 최신 상태로 유지할 것
+
+### Sophie 친화적 출력 규칙
+- 모든 에이전트의 `## 📚 Sophie에게` 섹션은 필수 — 건너뛰면 Self-Review FAIL
+- 전문용어 첫 등장 시: 반드시 `한국어명 (영문 Full Name: 한글 풀이)` 형식으로 표기
+- 숫자 결과는 비즈니스 언어로 변환: `p=0.003` → `통계적으로 99.7% 신뢰도로 유의미한 차이`
+- 마지막 줄에 `💡 오늘의 개념:` 포함 필수
+
+### Sophie 성장 추적
+- 프로젝트 완료마다 `memory/sophie_progress.md`의 체크리스트 항목 업데이트
+- Sophie가 r(수정 요청)을 선택한 경우: 수정 내용을 `memory/feedback_{날짜}.md`에 기록
+- 점수 3점 이하 에이전트가 2회 연속이면 해당 에이전트의 Sophie 설명 프롬프트 강화 검토
+
+### 첫 실행 전 체크리스트
+- [ ] `.env` 파일에 `ANTHROPIC_API_KEY` 설정 확인
+- [ ] `pip install -r requirements.txt` 완료
+- [ ] `python -c "import ast; ast.parse(open('main.py').read()); print('OK')"` → OK
+- [ ] `python main.py "테스트 주제" --agent planner` 로 단독 실행 테스트 먼저

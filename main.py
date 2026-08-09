@@ -144,31 +144,6 @@ def _ask_sophie(prompt_text: str, stage: str) -> tuple[bool, str]:
 # ── 메인 실행 ─────────────────────────────────────────────────────────────────
 def _run_graph_loop(graph, initial_state, config):
     """그래프 실행 + Sophie interrupt 처리 공통 루프."""
-        "topic": topic,
-        # Planner
-        "objective": None, "key_results": [], "plan": None,
-        "plan_explanation": None, "plan_version": 0,
-        "plan_peer_reviews": [], "plan_peer_passed": None,
-        "plan_sophie_approved": None, "plan_sophie_feedback": None,
-        # Researcher
-        "hypothesis": None, "poc_result": None,
-        "methodology": None, "methodology_explanation": None, "methodology_version": 0,
-        "methodology_peer_reviews": [], "methodology_peer_passed": None,
-        "methodology_sophie_approved": None, "methodology_sophie_feedback": None,
-        # Analyst
-        "code": None, "analysis_results": None, "code_error": None,
-        "analysis_explanation": None, "analysis_iteration": 0,
-        "review_passed": None, "review_feedback": None, "review_iteration": 0,
-        "analysis_peer_reviews": [], "analysis_peer_passed": None,
-        "analysis_sophie_approved": None, "analysis_sophie_feedback": None,
-        # Reporter
-        "final_report_md": None, "final_report_ppt_path": None,
-        "postmortem": None, "report_explanation": None,
-        "report_peer_reviews": [], "report_peer_passed": None,
-        "report_sophie_approved": None, "report_sophie_feedback": None,
-        # Common
-        "errors": [], "is_complete": False,
-    }
 
     # ── Interrupt 처리 맵 ────────────────────────────────────────────────────
     INTERRUPT_CONFIG = {
