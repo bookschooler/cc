@@ -1,4 +1,4 @@
-> Last auto-reviewed: 2026-08-09
+> Last auto-reviewed: 2026-08-16
 
 # DESA — Data & Engineering Science Analysts
 
@@ -107,3 +107,57 @@ main.py              → CLI 진입점 + Sophie 인터페이스
 - [ ] `pip install -r requirements.txt` 완료
 - [ ] `python -c "import ast; ast.parse(open('main.py').read()); print('OK')"` → OK
 - [ ] `python main.py "테스트 주제" --agent planner` 로 단독 실행 테스트 먼저
+
+## Sophie를 위한 첫걸음 가이드 (2026-08-16 추가)
+
+> ⚠️ **시스템이 두 달째 대기 중입니다.** 시스템은 완성되어 있어요. 딱 한 줄만 입력하면 됩니다!
+
+### 🟢 지금 당장 시작하는 3단계
+
+**Step 1 — API 키 확인 (30초)**
+```bash
+cat .env | grep ANTHROPIC
+# ANTHROPIC_API_KEY=sk-ant-... 이 보이면 OK
+```
+
+**Step 2 — Planner 혼자 먼저 (부담 없이)**
+```bash
+python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
+```
+Planner 하나만 실행합니다. 전체 팀을 다 돌릴 필요 없어요.
+Sophie 인터페이스에서 `y` 누르면 통과, `n` 누르면 중단, `r`로 피드백.
+
+**Step 3 — 전체 팀 (준비가 됐을 때)**
+```bash
+python main.py "삼성전자 주가와 반도체 수출 상관관계"
+```
+
+### Sophie 추천 첫 주제 (쉬운 순서)
+1. `"나의 스터디 일정 최적화"` — 외부 데이터 필요 없음, 빠름
+2. `"유튜브 알고리즘이 시청 시간에 미치는 영향"` — 논문 기반 분석
+3. `"삼성전자 주가 패턴 분석"` — yfinance 실시간 데이터
+
+### 처음 실행 시 Sophie가 볼 화면 예시
+```
+✅ [Planner] OKR 계획 완성
+🗳️  Peer Review 진행 중... [Researcher: PASS] [Analyst: PASS] ...
+📋 Sophie 검토 차례입니다!
+---
+[Sophie에게] ...
+---
+계속하려면 y, 중단은 n, 수정 요청은 r: 
+```
+`y`를 누르면 다음 단계로 넘어갑니다. 어렵지 않아요!
+
+## 시스템 활성화 진단 규칙 (2026-08-16 추가)
+
+### 주간 리뷰에서 체크할 항목
+- `agent_scores.json` 모든 배열이 비어있으면: **Sophie에게 첫 프로젝트 실행 독려 메시지 작성**
+- `memory/postmortem_log.md`에 내용이 없으면: 시스템이 아직 실제로 사용된 적 없음
+- `memory/sophie_progress.md`의 누적 프로젝트 수 = 0 이 2주 연속이면: 활성화 장벽 원인 분석 필요
+
+### 비활성화 원인 탐지 순서
+1. `.env` 파일 존재 여부 (`cat .env`)
+2. `ANTHROPIC_API_KEY` 설정 여부
+3. `requirements.txt` 설치 여부 (`pip list | grep anthropic`)
+4. `main.py` 구문 오류 여부 (AST 파싱 체크)
