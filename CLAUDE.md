@@ -1,4 +1,4 @@
-> Last auto-reviewed: 2026-08-16
+> Last auto-reviewed: 2026-08-23
 
 # DESA — Data & Engineering Science Analysts
 
@@ -161,3 +161,36 @@ python main.py "삼성전자 주가와 반도체 수출 상관관계"
 2. `ANTHROPIC_API_KEY` 설정 여부
 3. `requirements.txt` 설치 여부 (`pip list | grep anthropic`)
 4. `main.py` 구문 오류 여부 (AST 파싱 체크)
+
+## 🚨 긴급 활성화 가이드 (2026-08-23 추가 — 4개월 미실행)
+
+> ⛔ **현재 상태: `.env` 파일이 존재하지 않습니다.** 이것이 Sophie가 시스템을 실행하지 못한 가장 유력한 원인입니다.
+
+### 지금 당장 해야 할 단 하나의 일
+
+```bash
+# 1. 프로젝트 루트에 .env 파일 생성
+echo "ANTHROPIC_API_KEY=여기에_본인_API_키_입력" > .env
+
+# 2. API 키 확인 (https://console.anthropic.com 에서 발급)
+cat .env
+
+# 3. 바로 실행
+python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
+```
+
+### `.env` 파일 없을 때 나타나는 증상
+- `AuthenticationError`, `API key not found` 오류
+- `KeyError: 'ANTHROPIC_API_KEY'` 오류
+- 아무 결과도 없이 바로 종료됨
+
+### 주간 리뷰 에이전트 체크 의무 (2026-08-23 추가)
+- 매 주간 리뷰 시 `.env` 파일 존재 여부를 **가장 먼저** 확인
+- `.env` 없으면: `weekly_insights.md`에 "⛔ API 키 없음 — 실행 불가" 명시
+- 3주 연속 `.env` 없음 확인 시: CLAUDE.md 최상단에 빨간 경고 추가
+
+### 연속 미실행 에스컬레이션 규칙
+- **2주 연속 미실행**: 첫걸음 가이드 추가 (2026-08-16 완료)
+- **3주 연속 미실행**: `.env` 설정 단계별 안내 추가 (2026-08-23 완료)
+- **4주 연속 미실행**: README.md 최상단에 긴급 설정 가이드 삽입 예정
+- **8주 연속 미실행**: 시스템 재설계 검토 필요 (진입 장벽 구조적 문제)
