@@ -1,11 +1,11 @@
-> Last auto-reviewed: 2026-09-06
+> Last auto-reviewed: 2026-09-13
 
-> ⛔🚨 **[긴급 경고 — 5개월 이상 미실행 / 5주 연속]** `.env` 파일이 4주 연속 존재하지 않음이 확인되었습니다. `examples/planner_sample_output.md`에 실행 예시를 추가했으니 먼저 읽어보세요. 그 다음 아래 순서대로 실행하세요:
+> ⛔🚨 **[긴급 경고 — 5개월 이상 미실행 / 6주 연속]** `.env` 파일이 5주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
 > ```bash
 > echo "ANTHROPIC_API_KEY=여기에_본인_API_키_입력" > .env
 > python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 > ```
-> API 키 발급: https://console.anthropic.com | 이 경고는 첫 프로젝트 완료 후 제거됩니다.
+> API 키 발급: https://console.anthropic.com | `memory/weekly_insights.md`에 Sophie에게 쓴 편지가 있습니다 — 먼저 읽어보세요.
 
 # DESA — Data & Engineering Science Analysts
 
@@ -201,7 +201,7 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 - **3주 연속 미실행**: `.env` 설정 단계별 안내 추가 (2026-08-23 완료)
 - **4주 연속 미실행**: README.md 최상단에 긴급 설정 가이드 삽입 (2026-08-30 완료) + CLAUDE.md 최상단 경고 추가 (2026-08-30 완료)
 - **5주 연속 미실행**: `examples/` 폴더에 Planner 샘플 출력물 추가 + 모든 가이드 재점검 (2026-09-06 완료)
-- **6주 연속 미실행**: 가이드 전체 재점검 — Sophie에게 1:1 편지 형식 동기부여 메시지 작성 + `memory/weekly_insights.md`에 진입 장벽 상세 분석 추가
+- **6주 연속 미실행**: 가이드 전체 재점검 — Sophie에게 1:1 편지 형식 동기부여 메시지 작성 + `memory/weekly_insights.md`에 진입 장벽 상세 분석 추가 (2026-09-13 완료)
 - **8주 연속 미실행**: 시스템 재설계 검토 필요 (진입 장벽 구조적 문제)
 
 ### 주간 .env 확인 기록 (자동 누적)
@@ -212,3 +212,4 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 | 2026-08-23 | ❌ 없음 (1차 확인) | 긴급 가이드 CLAUDE.md 추가 |
 | 2026-08-30 | ❌ 없음 (2차 확인) | README.md 최상단 가이드 + CLAUDE.md 경고 추가 |
 | 2026-09-06 | ❌ 없음 (3차 확인) | examples/planner_sample_output.md 생성 + 모든 가이드 재점검 완료 |
+| 2026-09-13 | ❌ 없음 (4차 확인) | 6주 에스컬레이션 — Sophie에게 1:1 편지 작성 + 진입 장벽 상세 분석 추가 |
