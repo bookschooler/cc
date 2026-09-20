@@ -1,11 +1,12 @@
-> Last auto-reviewed: 2026-09-13
+> Last auto-reviewed: 2026-09-20
 
-> ⛔🚨 **[긴급 경고 — 5개월 이상 미실행 / 6주 연속]** `.env` 파일이 5주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
+> ⛔🚨 **[긴급 경고 — 5.5개월 이상 미실행 / 7주 연속]** `.env` 파일이 6주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
 > ```bash
 > echo "ANTHROPIC_API_KEY=여기에_본인_API_키_입력" > .env
 > python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 > ```
-> API 키 발급: https://console.anthropic.com | `memory/weekly_insights.md`에 Sophie에게 쓴 편지가 있습니다 — 먼저 읽어보세요.
+> 💳 **API 키 첫 발급 시 무료 크레딧 제공 — 신용카드 없이 시작 가능!** → https://console.anthropic.com
+> `memory/weekly_insights.md`에 Sophie에게 쓴 편지가 있습니다 — 먼저 읽어보세요.
 
 # DESA — Data & Engineering Science Analysts
 
@@ -115,6 +116,12 @@ main.py              → CLI 진입점 + Sophie 인터페이스
 - [ ] `python -c "import ast; ast.parse(open('main.py').read()); print('OK')"` → OK
 - [ ] `python main.py "테스트 주제" --agent planner` 로 단독 실행 테스트 먼저
 
+### API 키 무료 시작 안내 (2026-09-20 추가)
+- Anthropic API는 **첫 가입 시 무료 크레딧 제공** — 신용카드 없이도 시작 가능
+- 무료 크레딧으로 Planner 단독 실행 약 50~100회 가능 (토큰 절약 모델 사용 중)
+- API 키 발급: https://console.anthropic.com → "Get API keys" → "Create Key"
+- 발급 시간: 회원가입 포함 약 3분
+
 ## Sophie를 위한 첫걸음 가이드 (2026-08-16 추가)
 
 > ⚠️ **시스템이 두 달째 대기 중입니다.** 시스템은 완성되어 있어요. 딱 한 줄만 입력하면 됩니다!
@@ -202,7 +209,8 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 - **4주 연속 미실행**: README.md 최상단에 긴급 설정 가이드 삽입 (2026-08-30 완료) + CLAUDE.md 최상단 경고 추가 (2026-08-30 완료)
 - **5주 연속 미실행**: `examples/` 폴더에 Planner 샘플 출력물 추가 + 모든 가이드 재점검 (2026-09-06 완료)
 - **6주 연속 미실행**: 가이드 전체 재점검 — Sophie에게 1:1 편지 형식 동기부여 메시지 작성 + `memory/weekly_insights.md`에 진입 장벽 상세 분석 추가 (2026-09-13 완료)
-- **8주 연속 미실행**: 시스템 재설계 검토 필요 (진입 장벽 구조적 문제)
+- **7주 연속 미실행**: `examples/researcher_sample_output.md` 추가 + API 무료 크레딧 강조 + 8주 재설계 사전 준비 착수 (2026-09-20 완료)
+- **8주 연속 미실행**: 시스템 재설계 검토 필요 (진입 장벽 구조적 문제) — 터미널 없는 대안 진입 경로 설계
 
 ### 주간 .env 확인 기록 (자동 누적)
 | 날짜 | .env 존재 여부 | 조치 |
@@ -213,3 +221,21 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 | 2026-08-30 | ❌ 없음 (2차 확인) | README.md 최상단 가이드 + CLAUDE.md 경고 추가 |
 | 2026-09-06 | ❌ 없음 (3차 확인) | examples/planner_sample_output.md 생성 + 모든 가이드 재점검 완료 |
 | 2026-09-13 | ❌ 없음 (4차 확인) | 6주 에스컬레이션 — Sophie에게 1:1 편지 작성 + 진입 장벽 상세 분석 추가 |
+| 2026-09-20 | ❌ 없음 (5차 확인) | 7주 에스컬레이션 — examples/researcher_sample_output.md 추가 + 무료 크레딧 강조 + 8주 재설계 준비 |
+
+## 8주 재설계 준비 (2026-09-20 추가 — 7주 미실행)
+
+> 다음 주(2026-09-27)까지도 미실행이면, 아래 재설계 방향으로 전환 검토
+
+### 재설계 핵심 방향: 터미널 없는 진입 경로
+
+현재 시스템의 진입점은 **터미널 명령어**다. 이것이 7주 동안 Sophie의 가장 큰 장벽이었을 가능성이 높다.
+
+**재설계 옵션 (우선순위 순)**
+1. **[단기 — 즉시 가능]** `examples/` 폴더에 모든 에이전트 샘플 출력물 추가 → Sophie가 실행 전에 결과물을 미리 보고 동기 획득
+2. **[중기]** Jupyter Notebook 인터페이스 추가 — 터미널 대신 셀 실행 방식
+3. **[장기]** Streamlit 또는 Gradio 웹 인터페이스 — 브라우저에서 실행
+
+### 재설계 전 반드시 확인할 것
+- Sophie가 터미널을 어려워하는 것인지, API 키 발급을 미루는 것인지 구분 필요
+- 8주 리뷰 시 두 시나리오 모두에 대응하는 안 준비
