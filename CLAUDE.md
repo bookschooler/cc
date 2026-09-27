@@ -1,11 +1,12 @@
-> Last auto-reviewed: 2026-09-20
+> Last auto-reviewed: 2026-09-27
 
-> ⛔🚨 **[긴급 경고 — 5.5개월 이상 미실행 / 7주 연속]** `.env` 파일이 6주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
+> ⛔🚨 **[긴급 경고 — 약 6개월 미실행 / 8주 연속]** `.env` 파일이 8주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
 > ```bash
 > echo "ANTHROPIC_API_KEY=여기에_본인_API_키_입력" > .env
 > python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 > ```
 > 💳 **API 키 첫 발급 시 무료 크레딧 제공 — 신용카드 없이 시작 가능!** → https://console.anthropic.com
+> 또는 터미널이 어렵다면: `jupyter notebook notebooks/quick_start.ipynb` (새로운 대안 진입 경로)
 > `memory/weekly_insights.md`에 Sophie에게 쓴 편지가 있습니다 — 먼저 읽어보세요.
 
 # DESA — Data & Engineering Science Analysts
@@ -210,7 +211,8 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 - **5주 연속 미실행**: `examples/` 폴더에 Planner 샘플 출력물 추가 + 모든 가이드 재점검 (2026-09-06 완료)
 - **6주 연속 미실행**: 가이드 전체 재점검 — Sophie에게 1:1 편지 형식 동기부여 메시지 작성 + `memory/weekly_insights.md`에 진입 장벽 상세 분석 추가 (2026-09-13 완료)
 - **7주 연속 미실행**: `examples/researcher_sample_output.md` 추가 + API 무료 크레딧 강조 + 8주 재설계 사전 준비 착수 (2026-09-20 완료)
-- **8주 연속 미실행**: 시스템 재설계 검토 필요 (진입 장벽 구조적 문제) — 터미널 없는 대안 진입 경로 설계
+- **8주 연속 미실행**: 시스템 재설계 착수 — `notebooks/quick_start.ipynb` Jupyter 인터페이스 추가 + analyst/reviewer/reporter 샘플 출력물 추가 (2026-09-27 완료)
+- **9주 연속 미실행**: Streamlit/Gradio 웹 인터페이스 프로토타입 구현 검토 — 브라우저 기반 완전 GUI
 
 ### 주간 .env 확인 기록 (자동 누적)
 | 날짜 | .env 존재 여부 | 조치 |
@@ -222,20 +224,28 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 | 2026-09-06 | ❌ 없음 (3차 확인) | examples/planner_sample_output.md 생성 + 모든 가이드 재점검 완료 |
 | 2026-09-13 | ❌ 없음 (4차 확인) | 6주 에스컬레이션 — Sophie에게 1:1 편지 작성 + 진입 장벽 상세 분석 추가 |
 | 2026-09-20 | ❌ 없음 (5차 확인) | 7주 에스컬레이션 — examples/researcher_sample_output.md 추가 + 무료 크레딧 강조 + 8주 재설계 준비 |
+| 2026-09-27 | ❌ 없음 (6차 확인) | 8주 에스컬레이션 — Jupyter Notebook 인터페이스 추가 + analyst/reviewer/reporter 샘플 출력물 추가 |
 
-## 8주 재설계 준비 (2026-09-20 추가 — 7주 미실행)
+## 8주 재설계 실행 (2026-09-27 — 8주 미실행 확인, 계획 → 실행으로 전환)
 
-> 다음 주(2026-09-27)까지도 미실행이면, 아래 재설계 방향으로 전환 검토
+> 8주 연속 미실행 확인. 계획에서 실행으로 전환 — Jupyter Notebook 인터페이스 추가 완료.
 
 ### 재설계 핵심 방향: 터미널 없는 진입 경로
 
-현재 시스템의 진입점은 **터미널 명령어**다. 이것이 7주 동안 Sophie의 가장 큰 장벽이었을 가능성이 높다.
+현재 시스템의 진입점은 **터미널 명령어**다. 이것이 8주 동안 Sophie의 가장 큰 장벽이었을 가능성이 높다.
 
-**재설계 옵션 (우선순위 순)**
-1. **[단기 — 즉시 가능]** `examples/` 폴더에 모든 에이전트 샘플 출력물 추가 → Sophie가 실행 전에 결과물을 미리 보고 동기 획득
-2. **[중기]** Jupyter Notebook 인터페이스 추가 — 터미널 대신 셀 실행 방식
-3. **[장기]** Streamlit 또는 Gradio 웹 인터페이스 — 브라우저에서 실행
+**재설계 완료 현황 (2026-09-27 기준)**
+1. **[완료]** `examples/` 폴더에 5개 에이전트 샘플 출력물 모두 추가 — Sophie가 실행 전에 전체 흐름을 볼 수 있음
+2. **[완료]** `notebooks/quick_start.ipynb` Jupyter Notebook 인터페이스 추가 — 터미널 대신 셀 실행 방식
+3. **[다음 단계]** Streamlit 또는 Gradio 웹 인터페이스 — 9주 연속 미실행 시 착수
 
-### 재설계 전 반드시 확인할 것
-- Sophie가 터미널을 어려워하는 것인지, API 키 발급을 미루는 것인지 구분 필요
-- 8주 리뷰 시 두 시나리오 모두에 대응하는 안 준비
+### Jupyter Notebook 진입 방법 (새로운 대안)
+```bash
+pip install jupyter
+jupyter notebook notebooks/quick_start.ipynb
+```
+브라우저에서 자동으로 열립니다. 셀 하나씩 실행 (Shift+Enter).
+
+### 9주 재설계 준비
+- 9주 연속 미실행 시: `app.py` Streamlit 인터페이스 추가 — `streamlit run app.py` 한 줄로 웹 UI 실행
+- Streamlit은 코드 한 줄 없이도 슬라이더/버튼으로 에이전트 호출 가능
