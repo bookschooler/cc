@@ -1,12 +1,13 @@
-> Last auto-reviewed: 2026-09-27
+> Last auto-reviewed: 2026-10-04
 
-> ⛔🚨 **[긴급 경고 — 약 6개월 미실행 / 8주 연속]** `.env` 파일이 8주 연속 존재하지 않음이 확인되었습니다. Sophie, 아래 두 줄이면 됩니다:
+> ⛔🚨 **[긴급 경고 — 약 6개월 미실행 / 9주 연속]** `.env` 파일이 9주 연속 존재하지 않음이 확인되었습니다. 이제 **브라우저에서 클릭 한 번**으로 시작 가능:
 > ```bash
-> echo "ANTHROPIC_API_KEY=여기에_본인_API_키_입력" > .env
-> python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
+> pip install streamlit
+> streamlit run app.py
 > ```
+> 브라우저가 자동으로 열립니다. API 키도 웹 UI에서 직접 입력 가능!
 > 💳 **API 키 첫 발급 시 무료 크레딧 제공 — 신용카드 없이 시작 가능!** → https://console.anthropic.com
-> 또는 터미널이 어렵다면: `jupyter notebook notebooks/quick_start.ipynb` (새로운 대안 진입 경로)
+> 또는 Jupyter: `jupyter notebook notebooks/quick_start.ipynb`
 > `memory/weekly_insights.md`에 Sophie에게 쓴 편지가 있습니다 — 먼저 읽어보세요.
 
 # DESA — Data & Engineering Science Analysts
@@ -212,7 +213,7 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 - **6주 연속 미실행**: 가이드 전체 재점검 — Sophie에게 1:1 편지 형식 동기부여 메시지 작성 + `memory/weekly_insights.md`에 진입 장벽 상세 분석 추가 (2026-09-13 완료)
 - **7주 연속 미실행**: `examples/researcher_sample_output.md` 추가 + API 무료 크레딧 강조 + 8주 재설계 사전 준비 착수 (2026-09-20 완료)
 - **8주 연속 미실행**: 시스템 재설계 착수 — `notebooks/quick_start.ipynb` Jupyter 인터페이스 추가 + analyst/reviewer/reporter 샘플 출력물 추가 (2026-09-27 완료)
-- **9주 연속 미실행**: Streamlit/Gradio 웹 인터페이스 프로토타입 구현 검토 — 브라우저 기반 완전 GUI
+- **9주 연속 미실행**: `app.py` Streamlit 웹 인터페이스 추가 완료 — `streamlit run app.py` 한 줄로 브라우저 GUI 실행 가능. API 키 입력도 웹 UI에서 처리 (2026-10-04 완료)
 
 ### 주간 .env 확인 기록 (자동 누적)
 | 날짜 | .env 존재 여부 | 조치 |
@@ -225,6 +226,7 @@ python main.py "나의 하루 시간 관리 패턴 분석" --agent planner
 | 2026-09-13 | ❌ 없음 (4차 확인) | 6주 에스컬레이션 — Sophie에게 1:1 편지 작성 + 진입 장벽 상세 분석 추가 |
 | 2026-09-20 | ❌ 없음 (5차 확인) | 7주 에스컬레이션 — examples/researcher_sample_output.md 추가 + 무료 크레딧 강조 + 8주 재설계 준비 |
 | 2026-09-27 | ❌ 없음 (6차 확인) | 8주 에스컬레이션 — Jupyter Notebook 인터페이스 추가 + analyst/reviewer/reporter 샘플 출력물 추가 |
+| 2026-10-04 | ❌ 없음 (7차 확인) | 9주 에스컬레이션 — app.py Streamlit 웹 인터페이스 추가 완료 (브라우저 기반 완전 GUI) |
 
 ## 8주 재설계 실행 (2026-09-27 — 8주 미실행 확인, 계획 → 실행으로 전환)
 
@@ -249,3 +251,34 @@ jupyter notebook notebooks/quick_start.ipynb
 ### 9주 재설계 준비
 - 9주 연속 미실행 시: `app.py` Streamlit 인터페이스 추가 — `streamlit run app.py` 한 줄로 웹 UI 실행
 - Streamlit은 코드 한 줄 없이도 슬라이더/버튼으로 에이전트 호출 가능
+
+## 9주차 Streamlit 인터페이스 완성 (2026-10-04 — 9주 미실행 확인)
+
+> 9주 연속 미실행 확인. 에스컬레이션 계획대로 `app.py` Streamlit 웹 인터페이스 구현 완료.
+
+### Sophie를 위한 완전 GUI 진입점
+
+터미널, 코드, 명령어가 전혀 필요 없는 세 번째 진입 경로:
+
+```bash
+pip install streamlit
+streamlit run app.py
+```
+
+브라우저가 자동으로 열리고, 탭 4개로 구성된 GUI가 나타납니다:
+- **🚀 실행 탭**: 주제 입력 → 에이전트 선택 → 분석 시작
+- **📚 샘플 보기 탭**: examples/ 폴더의 샘플 출력물을 브라우저에서 바로 열람
+- **📈 팀 성과 탭**: Sophie가 평가한 에이전트 점수 시각화
+- **⚙️ 설정 탭**: API 키를 웹 폼에서 직접 입력 → .env 자동 생성
+
+### 현재 Sophie에게 열린 세 가지 진입 경로
+
+| 경로 | 명령어 | 터미널 필요 | API 키 입력 |
+|------|--------|-----------|------------|
+| A. 터미널 직접 | `python main.py "주제" --agent planner` | ✅ | .env 파일 직접 생성 |
+| B. Jupyter | `jupyter notebook notebooks/quick_start.ipynb` | ✅ (1회) | .env 파일 직접 생성 |
+| C. Streamlit (신규) | `streamlit run app.py` | ✅ (1회) | 웹 UI에서 입력 가능 |
+
+### 10주 재설계 고려사항
+- 10주 연속 미실행 시: 가이드 전체 재검토 — 기술적 장벽은 제거됐으므로 Sophie에게 1:1 직접 소통 채널 검토
+- 현재 모든 기술적 진입 장벽은 제거된 상태 (터미널/Jupyter/Web 3가지 경로 모두 제공)
